@@ -187,7 +187,15 @@
   }
   .n3-inputs input:focus{border-color:#3b4654}
   .n3-fixed{font-size:11.5px;color:var(--dim2);border:1px solid var(--line);border-radius:8px;padding:5px 10px}
-  .n3-big{font-size:15px;margin-bottom:8px}
+  .n3-big{font-size:15px;margin-bottom:12px}
+  .n3-need{background:rgba(143,224,180,.07);border:1px solid rgba(143,224,180,.25);border-radius:12px;padding:11px 13px}
+  .n3-need-t{font-size:13px;color:#8fe0b4;font-weight:700;letter-spacing:.6px;margin-bottom:9px}
+  .n3-chips{display:flex;flex-wrap:wrap;gap:8px}
+  .n3-chip{
+    display:inline-flex;align-items:baseline;gap:6px;font-size:13.5px;color:var(--ink);
+    background:rgba(15,17,21,.55);border:1px solid rgba(143,224,180,.3);border-radius:9px;padding:5px 11px;
+  }
+  .n3-chip b{font-size:17px;font-weight:800;color:#ffd166}
   .n3-big b{font-size:24px;color:#8fe0b4;font-weight:800}
   .n3-line{font-size:12.5px;color:var(--dim);line-height:1.9}
   .n3-tip{margin-top:8px;font-size:11.5px;color:var(--dim2)}
@@ -603,14 +611,14 @@ function renderNano3(){
     const max = perCraft > 0 ? Math.floor(q / perCraft) : 0;
     const used = max * perCraft;
     const left = q - used;
-    const need = ex.map(x=>`${x.n} ${x.qty * max}`).join("　");
-    const dneed = dungeon.map(x=>`${x.n} ${x.qty * max}`).join("　");
     $("#n3out").innerHTML = `
       <div class="n3-big">最多做 <b>${max}</b> 份 ${m.name}</div>
-      <div class="n3-line">需要兑换材料：${need || "—"}</div>
-      <div class="n3-line">需要副本材料：${dneed || "—"}</div>
-      <div class="n3-line">消耗额度：${used}　剩余额度：${left}</div>
-      <div class="n3-tip">锐利蜂刺只能打日常副本拿，不受额度限制；额度不够时优先把蜂刺刷够</div>`;
+      <div class="n3-need">
+        <div class="n3-need-t">需要兑换材料</div>
+        <div class="n3-chips">
+          ${ex.map(x=>`<span class="n3-chip">${x.n}<b>${x.qty * max}</b></span>`).join("")}
+        </div>
+      </div>`;
   };
   $("#n3quota").addEventListener("input", calc);
   calc();
