@@ -975,6 +975,19 @@ renderDaily();
 renderAlliance();
 renderNano();
 render();
+
+// 跨天自动换副本、每分钟刷新联盟行动倒计时
+let _dayKey = new Date().toDateString();
+setInterval(()=>{
+  const k = new Date().toDateString();
+  if (k !== _dayKey){
+    _dayKey = k;
+    renderDaily();
+    renderAlliance();
+  } else if (state.view === "dungeon"){
+    renderAlliance();
+  }
+}, 60000);
 </script>
 </body>
 </html>
