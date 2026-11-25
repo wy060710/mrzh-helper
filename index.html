@@ -1,0 +1,980 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>明日之后 · 生存助手</title>
+<style>
+  :root{
+    --bg:#0f1115;
+    --panel:#181c22;
+    --panel2:#1e232b;
+    --line:#282e37;
+    --ink:#e9ecf2;
+    --dim:#98a1ae;
+    --dim2:#6c7683;
+    --cow:#e8833a;
+    --sheep:#d9a441;
+    --pig:#d96a8a;
+    --chicken:#c9a227;
+    --rabbit:#7fb069;
+    --food:#2ba36a;
+    --flower:#c86bb8;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{
+    background:
+      radial-gradient(900px 500px at 12% -8%, rgba(232,131,58,.10), transparent 60%),
+      radial-gradient(800px 500px at 88% 0%, rgba(74,168,201,.08), transparent 60%),
+      var(--bg);
+    color:var(--ink);
+    font-family:"Microsoft YaHei","PingFang SC","Hiragino Sans GB",system-ui,-apple-system,"Segoe UI",sans-serif;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  .wrap{max-width:1120px;margin:0 auto;padding:0 18px}
+
+  /* ---------- header ---------- */
+  header.top{
+    position:sticky;top:0;z-index:50;
+    background:rgba(15,17,21,.84);
+    backdrop-filter:blur(14px) saturate(140%);
+    -webkit-backdrop-filter:blur(14px) saturate(140%);
+    border-bottom:1px solid var(--line);
+    padding:14px 0 12px;
+  }
+  .brand{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+  .brand .dot{width:9px;height:9px;border-radius:50%;background:var(--cow);box-shadow:0 0 12px var(--cow)}
+  .brand h1{font-size:19px;margin:0;letter-spacing:.5px}
+  .brand .ver{font-size:10.5px;font-weight:700;color:#0f1115;background:var(--cow);padding:2px 7px;border-radius:5px;letter-spacing:.5px}
+  .brand .count{font-size:12px;color:var(--dim);border:1px solid var(--line);padding:3px 9px;border-radius:99px;background:var(--panel)}
+  .search{position:relative;margin-bottom:11px}
+  .search input{
+    width:100%;height:46px;border-radius:13px;
+    background:var(--panel);border:1px solid var(--line);
+    color:var(--ink);font-size:15px;padding:0 52px 0 42px;outline:none;
+    font-family:inherit;transition:border-color .15s,box-shadow .15s;
+  }
+  .search input::placeholder{color:var(--dim2)}
+  .search input:focus{border-color:#3b4654;box-shadow:0 0 0 4px rgba(255,255,255,.04)}
+  .search .ico{position:absolute;left:15px;top:14px;width:18px;height:18px;opacity:.55}
+  .search kbd{
+    position:absolute;right:12px;top:12px;font-size:12px;color:var(--dim2);
+    border:1px solid var(--line);border-radius:6px;padding:2px 7px;background:var(--panel2);
+    font-family:inherit;pointer-events:none;
+  }
+  .tabs{display:inline-flex;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:4px;gap:4px;margin-bottom:11px}
+  .tabs button{
+    border:0;background:transparent;color:var(--dim);font-family:inherit;
+    font-size:14px;padding:7px 16px;border-radius:9px;cursor:pointer;transition:.15s;
+  }
+  .tabs button.on{background:var(--panel2);color:var(--ink);box-shadow:0 1px 0 rgba(255,255,255,.05) inset}
+  .chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+  .chips::-webkit-scrollbar{display:none}
+  .chips.wrap{flex-wrap:wrap;max-height:104px;overflow-y:auto;overflow-x:hidden;padding-right:4px}
+  .chips.wrap::-webkit-scrollbar{width:6px}
+  .chips.wrap::-webkit-scrollbar-thumb{background:#333b46;border-radius:3px}
+  .chip{
+    flex:0 0 auto;border:1px solid var(--line);background:var(--panel);color:var(--dim);
+    font-family:inherit;font-size:13.5px;padding:7px 14px;border-radius:99px;cursor:pointer;
+    transition:.15s;display:flex;align-items:center;gap:7px;white-space:nowrap;
+  }
+  .chip i{width:7px;height:7px;border-radius:50%;background:currentColor;opacity:.9}
+  .chip:hover{border-color:#3b4654;color:var(--ink)}
+  .chip.on{background:var(--ink);color:#0f1115;border-color:var(--ink);font-weight:700}
+  .chip.on i{background:#0f1115}
+
+  /* ---------- 每日副本 ---------- */
+  .daily{display:grid;grid-template-columns:minmax(320px,1.15fr) 1fr;gap:12px;margin-bottom:14px}
+  .today{
+    position:relative;border-radius:18px;padding:20px 22px;overflow:hidden;min-height:158px;
+    background:linear-gradient(135deg, rgba(232,131,58,.18), rgba(200,107,184,.10) 58%, rgba(24,28,34,.92));
+    border:1px solid rgba(232,131,58,.38);
+  }
+  .today::after{
+    content:"";position:absolute;right:-34px;top:-34px;width:120px;height:120px;border-radius:50%;
+    background:radial-gradient(circle,rgba(232,131,58,.38),transparent 70%);pointer-events:none;
+  }
+  .tlabel{font-size:13px;color:#e8c9a8;letter-spacing:.8px;display:flex;align-items:center;gap:7px;position:relative}
+  .tlabel i{width:6px;height:6px;border-radius:50%;background:var(--cow);box-shadow:0 0 9px var(--cow)}
+  .tname{font-size:42px;font-weight:800;letter-spacing:2px;margin:10px 0 8px;position:relative;line-height:1.1}
+  .tsub{font-size:12.5px;color:#9aa3b0;position:relative}
+  .upc-wrap{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:12px 14px;min-width:0;overflow:hidden}
+  .upc-title{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--dim2);margin-bottom:9px}
+  .upc{display:flex;flex-wrap:wrap;gap:8px;padding-bottom:2px}
+  .upc::-webkit-scrollbar{display:none}
+  .upc-item{
+    flex:0 0 auto;min-width:92px;background:var(--panel2);border:1px solid var(--line);
+    border-radius:11px;padding:8px 10px;cursor:pointer;transition:.15s;
+  }
+  .upc-item:hover{border-color:#3b4654;transform:translateY(-1px)}
+  .upc-item .d{font-size:10.5px;color:var(--dim2);display:block;letter-spacing:.2px;white-space:nowrap}
+  .upc-item .n{font-size:13px;font-weight:700;display:block;margin-top:3px;white-space:nowrap}
+  .upc-item.next{border-color:rgba(232,131,58,.45);background:rgba(232,131,58,.09)}
+
+    /* ---------- 联盟行动 ---------- */
+  .alliance{margin-bottom:18px}
+  .al-card{
+    display:grid;grid-template-columns:minmax(300px,1.1fr) 1fr;gap:14px;
+    background:linear-gradient(120deg, rgba(74,168,201,.14), rgba(155,135,214,.10) 55%, rgba(24,28,34,.95));
+    border:1px solid rgba(74,168,201,.35);border-radius:18px;padding:18px 20px;
+  }
+  .al-label{font-size:12.5px;color:#a9d6e5;letter-spacing:.8px;display:flex;align-items:center;gap:7px}
+  .al-label i{width:7px;height:7px;border-radius:50%;background:#4aa8c9;box-shadow:0 0 10px #4aa8c9}
+  .al-name{font-size:32px;font-weight:800;letter-spacing:1.5px;margin:8px 0 6px}
+  .al-meta{font-size:12px;color:var(--dim2)}
+  .al-right{display:flex;flex-direction:column;justify-content:center;gap:9px;font-size:13px}
+  .al-row{display:flex;gap:10px;align-items:baseline}
+  .al-key{color:var(--dim2);font-size:12px;min-width:62px}
+  .al-val{color:var(--ink);font-weight:600}
+  .al-q{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:2px}
+  .al-chip{
+    font-size:12px;padding:3px 10px;border-radius:99px;border:1px solid var(--line);
+    color:var(--dim);background:var(--panel2);
+  }
+  .al-chip.on{background:#4aa8c9;border-color:#4aa8c9;color:#0f1115;font-weight:700}
+  .al-arrow{color:#3d4653;font-size:12px}
+  @media (max-width:800px){
+    .al-card{grid-template-columns:1fr;padding:14px 16px}
+    .al-name{font-size:26px}
+  }
+
+  /* ---------- 烧纳米2 性价比 ---------- */
+  .nano{margin-bottom:18px}
+  .nano-card{
+    background:linear-gradient(120deg, rgba(43,163,106,.13), rgba(232,131,58,.08) 60%, rgba(24,28,34,.95));
+    border:1px solid rgba(43,163,106,.32);border-radius:18px;padding:16px 20px;
+  }
+  .nano-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+  .nano-head b{font-size:14px;letter-spacing:.8px;color:#8fe0b4}
+  .nano-head span{font-size:11.5px;color:var(--dim2)}
+  .nano-tabs{display:flex;gap:6px;margin-left:auto}
+  .nano-tabs button{border:1px solid var(--line);background:var(--panel2);color:var(--dim);font-family:inherit;font-size:12px;padding:4px 12px;border-radius:8px;cursor:pointer}
+  .nano-tabs button:hover{color:var(--ink)}
+  .nano-tabs button.on{background:#8fe0b4;border-color:#8fe0b4;color:#0f1115;font-weight:700}
+  .nano-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(212px,1fr));gap:10px}
+  .nano-item{
+    display:flex;flex-direction:column;gap:5px;background:rgba(255,255,255,.03);
+    border:1px solid var(--line);border-radius:12px;padding:9px 12px;
+  }
+  .nano-top{display:flex;align-items:center;gap:9px}
+  .nano-sub{font-size:11.5px;color:var(--dim2);padding-left:33px}
+  .nano-sub b{color:#8fe0b4;font-weight:600}
+  .nano-rank{
+    width:24px;height:24px;flex:0 0 auto;border-radius:7px;display:flex;align-items:center;justify-content:center;
+    font-size:12.5px;font-weight:800;color:#0f1115;background:#8fe0b4;
+  }
+  .nano-item:nth-child(1) .nano-rank{background:#ffd166}
+  .nano-item:nth-child(2) .nano-rank{background:#cfd8e3}
+  .nano-item:nth-child(3) .nano-rank{background:#e3b58f}
+  .nano-name{font-size:14.5px;font-weight:700;white-space:nowrap}
+  .nano-lv{margin-left:auto;font-size:11.5px;color:var(--dim);border:1px solid var(--line);border-radius:99px;padding:2px 8px;white-space:nowrap}
+
+  /* ---------- 二级切换 ---------- */
+  .subtabs{display:inline-flex;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:4px;gap:4px;margin-bottom:16px}
+  .subtabs button{border:0;background:transparent;color:var(--dim);font-family:inherit;font-size:13.5px;padding:6px 14px;border-radius:9px;cursor:pointer;transition:.15s}
+  .subtabs button.on{background:var(--panel2);color:var(--ink);box-shadow:0 1px 0 rgba(255,255,255,.05) inset}
+
+  /* ---------- filter bar ---------- */
+  main.wrap{padding:30px 18px 60px}
+  .filterbar{
+    display:none;align-items:center;gap:10px;margin-bottom:16px;
+    font-size:13.5px;color:var(--dim);background:var(--panel);border:1px solid var(--line);
+    padding:9px 12px;border-radius:12px;
+  }
+  .filterbar.show{display:flex}
+  .filterbar b{color:var(--ink)}
+  .filterbar button{
+    margin-left:auto;border:1px solid var(--line);background:var(--panel2);color:var(--dim);
+    font-family:inherit;font-size:12.5px;padding:5px 12px;border-radius:8px;cursor:pointer;
+  }
+  .filterbar button:hover{color:var(--ink);border-color:#3b4654}
+
+  /* ---------- cards ---------- */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(238px,1fr));gap:12px;align-items:start}
+  .card{
+    position:relative;background:var(--panel);border:1px solid var(--line);
+    border-radius:15px;padding:13px 15px 14px 18px;cursor:pointer;
+    transition:transform .12s ease,border-color .15s,background .15s;overflow:hidden;
+  }
+  .card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent,#555)}
+  .card:hover{border-color:#3d4653;background:var(--panel2);transform:translateY(-2px)}
+  .card:active{transform:translateY(0) scale(.99)}
+  .heads{display:flex;align-items:center;gap:6px;min-height:20px}
+  .pill{
+    display:inline-flex;align-items:center;font-size:11.5px;font-weight:700;
+    padding:3px 9px;border-radius:99px;letter-spacing:.5px;
+    color:var(--accent);background:color-mix(in srgb,var(--accent) 16%,transparent);
+  }
+  .copy-hint{margin-left:auto;font-size:11px;color:var(--dim2);opacity:0;transition:.15s}
+  .card:hover .copy-hint{opacity:1}
+  .card h3{margin:8px 0 8px;font-size:17px;letter-spacing:.3px;font-weight:700;line-height:1.25}
+  .spots{display:flex;flex-direction:column;gap:4px}
+  .spot{display:flex;align-items:baseline;gap:7px;font-size:13.5px;color:var(--dim);flex-wrap:wrap}
+  .spot .map-link{color:var(--ink);font-weight:600;border-bottom:1px dashed #3f4854;cursor:pointer}
+  .spot .map-link:hover{border-bottom-color:var(--accent);color:var(--accent)}
+  .spot .sepc{color:#3d4653}
+  .spot em{font-style:normal;font-size:11.5px;color:var(--dim2);border:1px solid var(--line);border-radius:5px;padding:1px 5px}
+
+  /* ---------- map view ---------- */
+  .maps{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:12px}
+  .mapcard{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:14px 15px}
+  .mapcard header{display:flex;align-items:baseline;gap:9px;margin-bottom:10px}
+  .mapcard header h3{margin:0;font-size:16.5px;cursor:pointer}
+  .mapcard header h3:hover{color:var(--cow)}
+  .mapcard header em{font-style:normal;font-size:11.5px;color:var(--dim);border:1px solid var(--line);padding:2px 8px;border-radius:99px}
+  .mapcard ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:1px}
+  .mapcard li{
+    display:flex;align-items:center;gap:9px;font-size:13.5px;padding:6px 8px;border-radius:9px;
+    cursor:pointer;transition:.12s;
+  }
+  .mapcard li:hover{background:var(--panel2)}
+  .mapcard li i{width:7px;height:7px;border-radius:50%;flex:0 0 auto}
+  .mapcard li b{font-weight:600;display:flex;align-items:center;gap:6px}
+  .mapcard li span{color:var(--dim);margin-left:auto;font-size:12.5px;text-align:right}
+
+  .empty{grid-column:1/-1;text-align:center;color:var(--dim);padding:60px 20px;border:1px dashed var(--line);border-radius:16px;font-size:14px;line-height:2}
+
+  /* ---------- 食物图鉴 ---------- */
+  .fgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;align-items:start}
+  .fcard{
+    background:var(--panel);border:1px solid var(--line);border-radius:15px;
+    padding:13px 15px;cursor:pointer;transition:transform .12s,border-color .15s,background .15s;
+  }
+  .fcard:hover{border-color:#3d4653;background:var(--panel2);transform:translateY(-2px)}
+  .fcard:active{transform:none}
+  .fhead{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  .fhead h3{margin:0;font-size:16px;font-weight:700;letter-spacing:.3px}
+  .fc{
+    font-size:11px;color:var(--cow);border:1px solid rgba(232,131,58,.35);border-radius:99px;
+    padding:1px 8px;margin-left:auto;white-space:nowrap;background:rgba(232,131,58,.08);
+  }
+  .fmat{font-size:12.5px;color:var(--dim);line-height:1.6;margin-bottom:9px}
+  .fmat b{color:var(--ink);font-weight:600;margin-right:6px;font-size:11.5px}
+  .feffs{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:5px}
+  .feffs li{
+    font-size:11.5px;line-height:1.5;color:#9fe0bd;background:rgba(43,163,106,.13);
+    border:1px solid rgba(43,163,106,.26);border-radius:7px;padding:2px 7px;
+  }
+  .fnote{font-size:11.5px;color:#c9a227;margin-top:8px}
+  .fdur{font-size:11px;color:var(--dim2);margin-top:6px}
+
+  /* ---------- toast ---------- */
+  .toast{
+    position:fixed;left:50%;bottom:26px;transform:translate(-50%,20px);
+    background:var(--ink);color:#0f1115;font-size:13.5px;font-weight:700;
+    padding:11px 20px;border-radius:99px;box-shadow:0 10px 30px rgba(0,0,0,.5);
+    opacity:0;pointer-events:none;transition:.22s;z-index:99;max-width:86vw;text-align:center;
+  }
+  .toast.on{opacity:1;transform:translate(-50%,0)}
+
+  .foot{max-width:1120px;margin:0 auto;padding:0 18px 40px;color:var(--dim2);font-size:12.5px;line-height:2}
+  .foot b{color:var(--dim)}
+  @media (max-width:560px){
+    .brand h1{font-size:17px}
+    .grid{grid-template-columns:1fr 1fr;gap:10px}
+    .card{padding:12px 12px 12px 15px;border-radius:13px}
+    .card h3{font-size:15px}
+    .spot{font-size:12.5px}
+    .mapcard{padding:12px}
+  }
+  @media (max-width:800px){
+    .daily{grid-template-columns:1fr}
+    .tname{font-size:24px}
+  }
+  @media (max-width:560px){
+    .upc-title span:last-child{display:none}
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <div class="brand">
+      <span class="dot"></span>
+      <h1>明日之后 · 生存助手</h1>
+      <span class="ver">新版</span>
+      <span class="count" id="count">—</span>
+    </div>
+    <div class="search">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#98a1ae" stroke-width="2.2" stroke-linecap="round">
+        <circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4.2-4.2"></path>
+      </svg>
+      <input id="q" type="search" placeholder="搜品种 / 地图 / 地点，例：绒绒、红杉镇、老牧场" autocomplete="off" spellcheck="false">
+      <kbd>/</kbd>
+    </div>
+    <div class="tabs" id="tabs">
+      <button data-view="dungeon" class="on">副本</button>
+      <button data-view="nano">纳米</button>
+      <button data-view="farm">养殖</button>
+      <button data-view="food">食物图鉴</button>
+    </div>
+    <div class="chips" id="chips"></div>
+    <div class="chips" id="chips2" style="display:none;margin-top:8px"></div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="daily">
+    <div class="today" id="dailyToday"></div>
+    <div class="upc-wrap">
+      <div class="upc-title"><span>接下来 7 天</span><span>点一下看日期</span></div>
+      <div class="upc" id="dailyUpc"></div>
+    </div>
+  </section>
+  <section class="alliance" id="allianceBand"></section>
+  <section class="nano" id="nanoBand"></section>
+  <div class="subtabs" id="farmTabs" style="display:none">
+    <button data-fv="animal" class="on">按品种</button>
+    <button data-fv="map">按地图</button>
+  </div>
+  <div class="filterbar" id="filterbar">
+    <span>正在只看 <b id="fb-map"></b></span>
+    <button id="fb-clear">清除 ✕</button>
+  </div>
+  <section class="grid" id="animalView"></section>
+  <section class="maps" id="mapView" style="display:none"></section>
+  <section class="fgrid" id="foodView" style="display:none"></section>
+</main>
+
+<div class="foot wrap">
+  页签：<b>副本</b>（今日副本 + 联盟行动）｜<b>纳米</b>（纳米1 / 纳米2 性价比）｜<b>养殖</b>（动物 + 鲜花）｜<b>食物图鉴</b>（511 道）<br>
+  点卡片 = 复制内容｜点地图名 = 只看这张图｜按 <b>/</b> 搜索、<b>Esc</b> 清空
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ================= 数据（新版分布图） ================= */
+const TYPES = [
+  {t:"牛",   color:"#e8833a"},
+  {t:"羊",   color:"#d9a441"},
+  {t:"猪",   color:"#d96a8a"},
+  {t:"鸡",   color:"#c9a227"},
+  {t:"兔",   color:"#7fb069"},
+  {t:"食物", color:"#2ba36a"},
+  {t:"鲜花", color:"#c86bb8"}
+];
+const COLOR = TYPES.reduce((o,x)=>{o[x.t]=x.color;return o;},{});
+const ORDER = TYPES.map(x=>x.t);
+
+// spots: [{m:地图, p:位置}]  p 为空 = 图上只标了地图
+const ANIMALS = [
+  {t:"鸡", n:"矮脚棕鸡", spots:[{m:"晴空麦田", p:"种植园"}]},
+  {t:"鸡", n:"矮脚白鸡", spots:[{m:"狩狼野",   p:"狩猎营地"}]},
+  {t:"鸡", n:"矮脚黑鸡", spots:[{m:"红杉镇",   p:"红杉镇郊"}]},
+
+  {t:"兔", n:"棕兔", spots:[{m:"晴空麦田", p:"彩虹花田"}]},
+  {t:"兔", n:"白兔", spots:[{m:"秋日森林", p:"副岛1"}]},
+  {t:"兔", n:"黑兔", spots:[{m:"夏雨公路", p:"旧商场"}]},
+
+  {t:"羊", n:"绒绒白羊", spots:[{m:"狩狼野",   p:"安斯深林"}]},
+  {t:"羊", n:"绒绒棕羊", spots:[{m:"密斯卡镇", p:"贝卢高原"}]},
+  {t:"羊", n:"绒绒黑羊", spots:[{m:"红杉镇",   p:"高山牧区"}]},
+
+  {t:"猪", n:"长鼻粉猪", spots:[{m:"晴空麦田", p:"老农场"}]},
+  {t:"猪", n:"长鼻黑猪", spots:[{m:"莱辛港", p:"梅林荒冢"}]},
+  {t:"猪", n:"长鼻棕猪", spots:[{m:"红杉镇", p:"老牧场"}]},
+
+  {t:"牛", n:"短角白牛", spots:[{m:"大河区", p:"河畔山麓"}]},
+  {t:"牛", n:"短角黑牛", spots:[{m:"白树高地", p:"冰冻荒原"}]},
+  {t:"牛", n:"短角黄牛", spots:[{m:"双路市", p:"废弃公路"}]}
+];
+
+const FOODS = [
+  {t:"食物", n:"白萝卜", spots:[{m:"多贝雪山",p:"雪山山路"},{m:"红杉镇",p:"废弃农场"}]},
+  {t:"食物", n:"南瓜",   spots:[{m:"多贝雪山",p:"雪山山麓"},{m:"红杉镇",p:"往日营地"},{m:"莱辛港",p:"小镇郊外"}]},
+  {t:"食物", n:"西瓜",   spots:[{m:"晴空麦田",p:"种植园"},{m:"亚述丘陵",p:"丘陵木屋"},{m:"大河区",p:"大河洲头"}]},
+  {t:"食物", n:"凤梨",   spots:[{m:"亚述丘陵",p:"荒野小镇"},{m:"晴空麦田",p:"北岸密林"},{m:"星河峡谷",p:"废弃公路"}]},
+  {t:"食物", n:"桃子",   spots:[{m:"银翼基地",p:"鹿野原"},{m:"狩狼野",p:"北部丘陵"},{m:"双路市",p:"近郊据点"}]}
+];
+
+const FLOWERS = [
+  {t:"鲜花", n:"红蔷薇",   spots:[{m:"晴空麦田",p:"风车农场"}]},
+  {t:"鲜花", n:"黄蔷薇",   spots:[{m:"银翼基地",p:"乌木小镇"}]},
+  {t:"鲜花", n:"白蔷薇",   spots:[{m:"星河峡谷",p:"峡谷高速"}]},
+  {t:"鲜花", n:"蓝绣球",   spots:[{m:"密斯卡镇",p:"维斯小镇"}]},
+  {t:"鲜花", n:"粉绣球",   spots:[{m:"黑珍珠区",p:"黑珍珠城堡"}]},
+  {t:"鲜花", n:"白绣球",   spots:[{m:"双路市",p:"盖奇思小镇"}]},
+  {t:"鲜花", n:"风信子",   spots:[{m:"圣托帕尼",p:"度假村"}]},
+  {t:"鲜花", n:"黄风信子", spots:[{m:"莱辛港",p:"梅林荒冢"}]},
+  {t:"鲜花", n:"蓝风信子", spots:[{m:"红杉镇",p:"小教堂"}]}
+];
+
+
+/* ================= 联盟行动 ================= */
+// 每周 1 次，每 4 周轮换一次，周日 03:00 刷新
+// 2026-11-22（周日）03:00 起 = 遗迹岛屿 第 1 轮第 1 周
+const ALLIANCE = ["遗迹岛屿","荒寂戈壁","祸起蛛巢"];
+const AL_ANCHOR = new Date(2026, 10, 22, 3, 0, 0);
+const WEEKMS = 7 * 86400000;
+
+const pad2 = n => String(n).padStart(2, "0");
+const fmtDT = d => `${d.getMonth()+1}月${d.getDate()}日 ${WD[d.getDay()]} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+function human(ms){
+  if (ms < 0) ms = 0;
+  const d = Math.floor(ms / 86400000);
+  const h = Math.floor(ms % 86400000 / 3600000);
+  const m = Math.floor(ms % 3600000 / 60000);
+  if (d > 0) return `${d} 天 ${h} 小时`;
+  if (h > 0) return `${h} 小时 ${m} 分`;
+  return `${m} 分钟`;
+}
+function allianceInfo(now){
+  now = now || new Date();
+  const weeks = Math.floor((now - AL_ANCHOR) / WEEKMS);
+  const idx = (((Math.floor(weeks / 4)) % 3) + 3) % 3;
+  const weekIn = ((weeks % 4) + 4) % 4 + 1;
+  const weekStart = new Date(AL_ANCHOR.getTime() + weeks * WEEKMS);
+  const nextReset = new Date(weekStart.getTime() + WEEKMS);
+  const cycleStartWeek = Math.floor(weeks / 4) * 4;
+  const nextRotate = new Date(AL_ANCHOR.getTime() + (cycleStartWeek + 4) * WEEKMS);
+  return { idx, weekIn, nextReset, nextRotate, name: ALLIANCE[idx] };
+}
+function renderAlliance(){
+  const now = new Date();
+  const a = allianceInfo(now);
+  const chips = ALLIANCE.map((n,i)=>`<span class="al-chip ${i===a.idx?"on":""}">${n}</span>`).join('<span class="al-arrow">→</span>');
+  $("#allianceBand").innerHTML = `
+    <div class="al-card">
+      <div>
+        <div class="al-label"><i></i>联盟行动 · 本周</div>
+        <div class="al-name">${a.name}</div>
+        <div class="al-meta">每周 1 次 · 每 4 周轮换 · 周日 03:00 刷新</div>
+      </div>
+      <div class="al-right">
+        <div class="al-row"><span class="al-key">本轮进度</span><span class="al-val">第 ${a.weekIn} / 4 周</span></div>
+        <div class="al-row"><span class="al-key">下次刷新</span><span class="al-val">${fmtDT(a.nextReset)} · 还有 ${human(a.nextReset - now)}</span></div>
+        <div class="al-row"><span class="al-key">下次轮换</span><span class="al-val">${fmtDT(a.nextRotate)} 换成 ${ALLIANCE[(a.idx+1)%3]}</span></div>
+        <div class="al-q">${chips}</div>
+      </div>
+    </div>`;
+}
+
+
+/* ================= 烧纳米 性价比 ================= */
+// 排名 / 名称 / 地图等级（排名越靠前越划算）
+const NANO1 = [
+  { r: 1,  n: "兽筋",     lv: 2 },
+  { r: 2,  n: "兽角",     lv: 3 },
+  { r: 3,  n: "爪子",     lv: 2 },
+  { r: 4,  n: "兽皮",     lv: 1 },
+  { r: 5,  n: "黄麻杆",   lv: 4 },
+  { r: 6,  n: "油脂",     lv: 3 },
+  { r: 7,  n: "硫黄",     lv: 2 },
+  { r: 8,  n: "树脂",     lv: 2 },
+  { r: 9,  n: "木心",     lv: 2 },
+  { r: 10, n: "麻茎杆",   lv: 2 },
+  { r: 11, n: "海麻叶",   lv: 5 },
+  { r: 12, n: "红麻皮",   lv: 5 },
+  { r: 13, n: "铁桦残根", lv: 5 },
+  { r: 14, n: "剑麻叶",   lv: 5 },
+  { r: 15, n: "铝矿",     lv: 3 },
+  { r: 16, n: "老柏木",   lv: 3 }
+];
+const NANO2 = [
+  { r: 1,  n: "锰矿",   lv: 11 },
+  { r: 2,  n: "软壳",   lv: 10 },
+  { r: 3,  n: "山油麻", lv: 10 },
+  { r: 4,  n: "胡桃木", lv: 14 },
+  { r: 5,  n: "红珊瑚", lv: 13 },
+  { r: 6,  n: "桃木",   lv: 12 },
+  { r: 7,  n: "镁矿",   lv: 14 },
+  { r: 8,  n: "镍矿",   lv: 13 },
+  { r: 9,  n: "锌矿",   lv: 12 },
+  { r: 10, n: "触手",   lv: 9  },
+  { r: 11, n: "鳞片",   lv: 7  },
+  { r: 12, n: "硬甲钳", lv: 10 },
+  { r: 13, n: "榆树皮", lv: 7  },
+  { r: 14, n: "重晶石", lv: 10 },
+  { r: 15, n: "菱镁矿", lv: 14 },
+  { r: 16, n: "热液矿", lv: 13 }
+];
+const LV_MAP = {
+  1: "夏雨公路", 2: "银翼基地", 3: "多贝雪山", 4: "黑珍珠区", 5: "莱辛港",
+  6: "沼泽边境", 7: "鬼影山", 8: "圣罗纳市", 9: "加泰林地", 10: "莱文市郊",
+  11: "莱文市", 12: "宝石山湾", 13: "鸣欧港", 14: "圣诞村"
+};
+function renderNano(){
+  const list = state.nanoSel === 2 ? NANO2 : NANO1;
+  $("#nanoBand").innerHTML = `
+    <div class="nano-card">
+      <div class="nano-head">
+        <b>烧纳米 · 性价比排行</b>
+        <span>排名越靠前越划算｜标签是等级，下方为离采集队最近的地图</span>
+        <div class="nano-tabs">
+          <button data-nano="1" class="${state.nanoSel !== 2 ? "on" : ""}">纳米 1</button>
+          <button data-nano="2" class="${state.nanoSel === 2 ? "on" : ""}">纳米 2</button>
+        </div>
+      </div>
+      <div class="nano-list">
+        ${list.map(x=>`
+          <div class="nano-item">
+            <div class="nano-top">
+              <span class="nano-rank">${x.r}</span>
+              <span class="nano-name">${x.n}</span>
+              <span class="nano-lv">等级 ${x.lv}</span>
+            </div>
+            ${LV_MAP[x.lv] ? `<div class="nano-sub">最近采集队 · <b>${LV_MAP[x.lv]}</b></div>` : ""}
+          </div>`).join("")}
+      </div>
+    </div>`;
+  document.querySelectorAll("#nanoBand .nano-tabs button").forEach(b=>{
+    b.onclick = ()=>{ state.nanoSel = +b.dataset.nano; renderNano(); };
+  });
+}
+
+/* ================= 状态 ================= */
+const state = { view:"dungeon", farmView:"animal", type:"全部", map:null, q:"", tags:[], nanoSel:1 };
+
+const $  = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const elAnimal = $("#animalView"), elMap = $("#mapView"), elFood = $("#foodView");
+const elChips  = $("#chips"), elChips2 = $("#chips2"), elCount = $("#count");
+const elFB     = $("#filterbar"), elFBMap = $("#fb-map"), elFBClear = $("#fb-clear");
+const elToast  = $("#toast");
+
+/* ================= 工具 ================= */
+function toast(msg){
+  elToast.textContent = msg;
+  elToast.classList.add("on");
+  clearTimeout(toast._t);
+  toast._t = setTimeout(()=>elToast.classList.remove("on"), 1500);
+}
+function copy(text){
+  const done = ()=>toast("已复制：" + text);
+  if (navigator.clipboard && window.isSecureContext){
+    navigator.clipboard.writeText(text).then(done).catch(()=>fallback(text,done));
+  } else fallback(text, done);
+}
+function fallback(text, done){
+  const ta = document.createElement("textarea");
+  ta.value = text; ta.style.position="fixed"; ta.style.opacity="0";
+  document.body.appendChild(ta); ta.select();
+  try{ document.execCommand("copy"); done(); }catch(e){ toast(text); }
+  document.body.removeChild(ta);
+}
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+/* ================= 食物图鉴数据 ================= */
+// {n:菜名, i:配方, e:[效果], d:持续时间, c:类别}
+const FOODS_ALL = [{"n":"果酱","i":"水果×4","e":["每秒回复血量24","每秒回复饱食度7.2"],"d":"5秒","note":"","src":"图1"},{"n":"蜜糖","i":"蜂蜜×4","e":["每秒回复血量48"],"d":"5秒","note":"","src":"图1"},{"n":"纯椰汁","i":"椰子×4","e":["每秒回复血量20","每秒回复饱食度4"],"d":"5秒","note":"","src":"图1"},{"n":"果味冰棒","i":"水果+3冰块","e":["体温降低10"],"d":"5秒","note":"","src":"图1"},{"n":"水果蜜饯","i":"2水果+2蜂蜜","e":["每秒回复血量35"],"d":"5秒","note":"","src":"图1"},{"n":"水果牛奶","i":"3水果+牛奶","e":["每秒回复血量17.9"],"d":"5秒","note":"","src":"图1"},{"n":"奶糖","i":"2牛奶+2蜂蜜","e":["每秒回复血量28","移动速度提升5%"],"d":"600秒","note":"","src":"图1"},{"n":"果汁","i":"2水果+2冰块","e":["每秒回复血量8","每秒回复饱食度4"],"d":"5秒","note":"","src":"图1"},{"n":"蜂蜜水","i":"1蜂蜜+3冰块","e":["每秒回复血量12","体温提升10","去除感冒"],"d":"5秒","note":"","src":"图1"},{"n":"蛋卷","i":"3面粉+禽蛋","e":["每秒回复饱食度19.2"],"d":"5秒","note":"","src":"图1"},{"n":"椰子冻","i":"2冰块+2椰子","e":["每秒回复血量10","体温降低20"],"d":"5秒","note":"","src":"图1"},{"n":"椰汁水果捞","i":"3水果+椰子","e":["每秒回复血量21","游泳速度提升9%"],"d":"600秒","note":"","src":"图1"},{"n":"奶香玉米布丁","i":"2牛奶+2玉米","e":["每秒回复血量12","每秒回复饱食度7.2","移动速度提升5%"],"d":"900秒","note":"","src":"图1"},{"n":"水果派","i":"2水果+面粉+蜂蜜","e":["每秒回复血量22","每秒回复饱食度9","人型怪伤害提升10%"],"d":"1200秒","note":"","src":"图1"},{"n":"葡式蛋挞","i":"2面粉+蜂蜜+牛奶","e":["每秒回复血量14","每秒回复饱食度12","挖矿主/副资源暴击10%"],"d":"1200秒","note":"","src":"图1"},{"n":"牛奶布丁","i":"2蜂蜜+牛奶+冰块","e":["每秒回复血量16","体温降低15"],"d":"5秒","note":"","src":"图1"},{"n":"奶油浓汤","i":"2肉+蔬菜+牛奶","e":["每秒回复血量20","每秒回复饱食度15","体温提升20"],"d":"5秒","note":"","src":"图1"},{"n":"椰奶雪花糕","i":"2椰子+面粉+牛奶","e":["每秒回复饱食度12","采集熟练度提升10%"],"d":"600秒","note":"","src":"图1"},{"n":"水果椰奶","i":"2水果+牛奶+椰子","e":["每秒回复血量17","游泳速度提升9%"],"d":"600秒","note":"","src":"图1"},{"n":"蛋黄玉米酥","i":"面粉+禽蛋+玉米+水果","e":["血量上限150"],"d":"600秒","note":"","src":"图1"},{"n":"水果蛋糕","i":"水果+面粉+蜂蜜+牛奶","e":["每秒回复血量19","每秒回复饱食度8.5","移动速度提升5%"],"d":"1200秒","note":"找夏冬凉买食谱","src":"图1"},{"n":"水果冰沙","i":"2水果+蜂蜜+冰块","e":["每秒恢复血量22","体温降低20"],"d":"5秒","note":"","src":"图1"},{"n":"草莓果冻","i":"牛奶+冰块+2草莓","e":["每秒回复血量12.6","暴击率5%","移动速度提升5%"],"d":"1200秒","note":"找夏冬凉买食谱","src":"图1"},{"n":"草莓酸奶冰","i":"蜂蜜+牛奶+草莓+冰块","e":["每秒回复血量20","移动速度提升5%","体温降低20"],"d":"1200秒","note":"","src":"图1"},{"n":"莓莓芝士蛋糕","i":"面粉+牛奶+草莓+蓝莓","e":["持续回复血量1.5"],"d":"600秒","note":"","src":"图1"},{"n":"太阳果炖牛奶蛋","i":"2禽蛋+牛奶+南瓜","e":["持续回复血量1.5"],"d":"600秒","note":"","src":"图1"},{"n":"蓝莓椰丝脆","i":"2蓝莓+面粉+椰子","e":["木/矿/麻速度提升10%","采集熟练度提升10%"],"d":"600秒","note":"","src":"图1"},{"n":"黄金玉米盏","i":"胡萝卜+禽蛋+2玉米","e":["木/矿/麻速度提升10%"],"d":"600秒","note":"","src":"图1"},{"n":"大神爱心慕斯","i":"活动奖励","e":["每秒回复血量40","暴击率提升10%","移动速度提升5%"],"d":"1200秒","note":"网易大神app赠送","src":"图1"},{"n":"树根蛋糕","i":"活动奖励","e":["木/矿/麻主资源暴击20%","木/矿/麻副资源暴击10%"],"d":"600秒","note":"月卡宝箱领取","src":"图1"},{"n":"七巧五子拼盘","i":"七夕限定·活动购买","e":["挖矿速度提升10%"],"d":"","note":"七夕限定·活动购买","src":"图1"},{"n":"甜蜜七巧果","i":"七夕限定·活动购买","e":["伐木速度提升10%"],"d":"","note":"七夕限定·活动购买","src":"图1"},{"n":"浓情巧克力慕斯","i":"七夕限定·活动购买","e":["每秒回血1.5"],"d":"","note":"七夕限定·活动购买","src":"图1"},{"n":"恋语棉花糖","i":"七夕限定·活动购买","e":["移动速度提升5%"],"d":"","note":"七夕限定·活动购买","src":"图1"},{"n":"爱心甜甜圈","i":"七夕限定·活动购买","e":["暴击率10%"],"d":"","note":"七夕限定·活动购买","src":"图1"},{"n":"莲蓉双黄月饼","i":"2特制面粉+2莲蓉和咸蛋黄","e":["伐木速度提升10%"],"d":"未标注","note":"中秋限定食材制作","src":"图1"},{"n":"冰皮椰蓉月饼","i":"2特制面粉+2糯米粉和椰蓉","e":["挖矿速度提升10%"],"d":"未标注","note":"中秋限定食材制作","src":"图1"},{"n":"五仁火腿月饼","i":"2特制面粉+2果仁和火腿","e":["持续回复血量1.5"],"d":"未标注","note":"中秋限定食材制作","src":"图1"},{"n":"芝麻豆沙月饼","i":"2特制面粉+2黑芝麻和豆沙","e":["暴击率提升10%"],"d":"未标注","note":"中秋限定食材制作","src":"图1"},{"n":"消暑水果冰粥","i":"2水果+冰块+大米","e":["移动速度提升5%","挖矿速度提升10%","沙尘暴抵抗10%"],"d":"未标注","note":"","src":"图1"},{"n":"牛奶蒸米糕","i":"2牛奶+大米+调料","e":["持续回复血量2","挖矿主资源暴击10%"],"d":"未标注","note":"","src":"图1"},{"n":"红糖糍粑","i":"2蜂蜜+2大米","e":["每秒回复血量24","挖矿主资源暴击15%","沙尘暴抵抗10%"],"d":"未标注","note":"","src":"图1"},{"n":"酒酿圆子","i":"面粉+2大米+调料","e":["每秒回复血量12","沼泽抵抗10%","伐木主资源暴击10%","射程提升10"],"d":"600秒","note":"","src":"图2"},{"n":"双皮奶","i":"2牛奶+面粉+冰块","e":["伐木主/副资源暴击10%","奔跑消耗体力降低10%"],"d":"750秒","note":"","src":"图2"},{"n":"芝麻糊","i":"2芝麻+2大米","e":["每秒回复血量10","每秒回复饱食度10","采麻主资源暴击10%","采麻速度提升10%"],"d":"1200秒","note":"","src":"图2"},{"n":"姜撞奶","i":"2蜂蜜+牛奶+葱姜蒜","e":["每秒回复血量30","移动速度提升5%","伐木主/副资源暴击10%","去除感冒"],"d":"100秒","note":"","src":"图2"},{"n":"水果棒棒糖","i":"2蜂蜜+2草莓","e":["每秒回复血量34","移动速度提升5%","游泳速度提升10%"],"d":"600秒","note":"学习制作技能","src":"图2"},{"n":"可乐小子饼干","i":"活动奖励","e":["每秒回复血量40","人型怪伤害提升10%","感染者伤害提升10%","野生动物伤害提升10%"],"d":"600秒","note":"月卡宝箱领取","src":"图2"},{"n":"杏仁布丁","i":"活动奖励","e":["伐木速度提升10%","挖矿速度提升10%","采麻速度提升10%","木/矿/麻主资源暴击20%","木/矿/麻副资源暴击10%"],"d":"","note":"圣诞限定兑换","src":"图2"},{"n":"圣诞姜饼","i":"活动奖励","e":["每秒回复血量10","暴击率提升10%","射速提升5%"],"d":"600秒","note":"圣诞限定兑换","src":"图2"},{"n":"凤梨酥","i":"禽蛋+糖+2菠萝","e":["持续回复血量1.5","人型怪伤害提升10%"],"d":"600秒","note":"","src":"图2"},{"n":"西多士","i":"水果+牛奶+禽蛋+糖","e":["伐木主资源暴击10%","伐木速度提升8%"],"d":"600秒","note":"","src":"图2"},{"n":"鸡蛋仔","i":"3禽蛋+面粉","e":["感染者伤害提升10%","战斗熟练度提升10%"],"d":"600秒","note":"","src":"图2"},{"n":"鱼丸粗面","i":"鱼+2蔬菜+面粉","e":["每秒回复血量19","每秒回复饱食度12.5","血量上限100"],"d":"600秒","note":"","src":"图2"},{"n":"烤面包","i":"4面粉","e":["每秒回复饱食度24"],"d":"5秒","note":"","src":"图2"},{"n":"热牛奶","i":"4牛奶","e":["体温提升10"],"d":"5秒","note":"","src":"图2"},{"n":"肉馅千层饼","i":"2肉+2面粉","e":["每秒回复血量15","每秒回复饱食度18","人型怪伤害提升5%"],"d":"600秒","note":"","src":"图2"},{"n":"蔬菜千层饼","i":"2蔬菜+2面粉","e":["每秒回复饱食度18","伐木主/副资源暴击5%"],"d":"600秒","note":"","src":"图2"},{"n":"蘑菇乌冬面","i":"2蘑菇+2面粉","e":["每秒回复饱食度13","挖矿主/副资源暴击5%"],"d":"600秒","note":"","src":"图2"},{"n":"果酱面包","i":"2水果+2面粉","e":["每秒回复血量15","每秒回复饱食度15"],"d":"5秒","note":"","src":"图2"},{"n":"甜菜粥","i":"2蔬菜+2蜂蜜","e":["每秒回复血量15","体温提升15","去除感冒"],"d":"5秒","note":"","src":"图2"},{"n":"奶味牛角包","i":"2面粉+2牛奶","e":["每秒回复血量15","伐木主/副资源暴击10%"],"d":"600秒","note":"","src":"图2"},{"n":"蜂蜜牛角包","i":"3面粉+1蜂蜜","e":["每秒回复血量15","每秒回复饱食度20","伐木主/副资源暴击10%"],"d":"600秒","note":"","src":"图2"},{"n":"芝麻元宵","i":"3芝麻+面粉","e":["每秒回复血量15","每秒回复饱食度11","采麻主/副资源暴击10%","采麻速度提升8%","体温提升20","去除感冒"],"d":"600秒","note":"","src":"图2"},{"n":"花生元宵","i":"3花生+面粉","e":["每秒回复血量15.8","每秒回复饱食度11.6","挖矿主/副资源暴击10%","挖矿速度提升8%","体温提升20","去除感冒"],"d":"600秒","note":"","src":"图2"},{"n":"红豆元宵","i":"3红豆+面粉","e":["每秒回复血量15","每秒回复饱食度11","伐木主/副资源暴击10%","伐木速度提升8%","体温提升20","去除感冒"],"d":"600秒","note":"","src":"图2"},{"n":"枣泥元宵","i":"3冬枣+面粉","e":["每秒回复血量12","每秒回复饱食度16.8","移动速度提升5%","人型怪伤害提升10%","感染者伤害提升10%","动物伤害提升10%","体温提升20","去除感冒"],"d":"900秒","note":"","src":"图2"},{"n":"红油小面","i":"2面粉+2穿天椒","e":["每秒回复饱食度15"],"d":"5秒","note":"","src":"图2"},{"n":"椰浆面包","i":"2面粉+2椰子","e":["每秒回复血量15","每秒回复饱食度20"],"d":"5秒","note":"","src":"图2"},{"n":"玉米发糕","i":"面粉+玉米+2水果（加血量）／2面粉+2玉米（加饱食）","e":["每秒回复血量13","每秒回复饱食度10"],"d":"5秒","note":"","src":"图2"},{"n":"水饺","i":"2肉+蘑菇+面粉","e":["每秒回复血量16","每秒回复饱食度12.5","体温提升20"],"d":"5秒","note":"","src":"图2"},{"n":"三明治","i":"2肉+水果+面粉","e":["每秒回复血量17","每秒回复饱食度12.5","感染者伤害提升10%"],"d":"1200秒","note":"","src":"图2"},{"n":"虾仁玉米披萨","i":"面粉+2玉米+对虾","e":["每秒回复饱食度15","暴击率8%"],"d":"600秒","note":"","src":"图2"},{"n":"特制披萨","i":"肉+蘑菇+蔬菜+面粉","e":["每秒回复血量14","每秒回复饱食度13.5","建筑伤害提升10%"],"d":"1200秒","note":"找夏冬凉买食谱","src":"图2"},{"n":"肉酱意大利面","i":"肉+蔬菜+水果+面粉","e":["每秒回复血量15","每秒回复饱食度13.5","暴击率10%"],"d":"1200秒","note":"找夏冬凉买食谱／月卡宝箱领取","src":"图2"},{"n":"彩虹元宵","i":"面粉+芝麻+花生+红豆","e":["每秒回复血量56.5","每秒回复饱食度12.1","持续回复血量1.5","体温提升20"],"d":"750秒","note":"","src":"图2"},{"n":"草莓松饼","i":"面粉+3草莓","e":["每秒回复血量25","每秒回复饱食度10"],"d":"5秒","note":"","src":"图2"},{"n":"蓝莓饼干","i":"2蓝莓+2面粉","e":["伐木速度提升6%"],"d":"600秒","note":"","src":"图3"},{"n":"海鲜炒乌冬","i":"面粉+对虾+鱿鱼+梭子蟹","e":["每秒回复饱食度10","生命值上限120"],"d":"600秒","note":"","src":"图3"},{"n":"香菇火腿粽","i":"香菇+火腿+2糯米","e":["每秒回复血量20","伐木速度提升10%","体温提升20"],"d":"600秒","note":"","src":"图3"},{"n":"香菇虾仁粽","i":"香菇+虾仁+2糯米","e":["每秒回复血量20","挖矿速度提升10%","体温提升20"],"d":"600秒","note":"","src":"图3"},{"n":"绿豆鲜肉粽","i":"绿豆+五花肉+2糯米","e":["每秒回复血量20","采麻速度提升10%","体温提升20"],"d":"600秒","note":"","src":"图3"},{"n":"绿豆火腿粽","i":"绿豆+火腿+2糯米","e":["每秒回复血量20","伐木副资源暴击10%","体温提升20"],"d":"600秒","note":"","src":"图3"},{"n":"板栗虾仁粽","i":"板栗+虾仁+2糯米","e":["每秒回复血量20","挖矿副资源暴击10%","体温提升20"],"d":"600秒","note":"","src":"图3"},{"n":"板栗鲜肉粽","i":"板栗+五花肉+2糯米","e":["每秒回复血量20","采麻副资源暴击10%","体温提升20"],"d":"600秒","note":"","src":"图3"},{"n":"至尊甜粽","i":"香菇+绿豆+板栗+糯米","e":["每秒回复血量20","持续回复血量1.5","体温提升20"],"d":"600秒","note":"","src":"图3"},{"n":"至尊肉粽","i":"虾仁+火腿+五花肉+糯米","e":["每秒回复血量20","暴击率提升10%","体温提升20"],"d":"600秒","note":"","src":"图3"},{"n":"蛋包饭","i":"鸡蛋+酱料+2大米","e":["持续回复血量1.5","免暴率5%","射速提升5%"],"d":"600秒","note":"","src":"图3"},{"n":"蛋炒饭","i":"2禽蛋+2大米","e":["持续回复血量1.6","战斗熟练度提升10%"],"d":"600秒","note":"","src":"图3"},{"n":"香菇卤肉饭","i":"2肉+蘑菇+大米","e":["每秒回复血量10","每秒回复饱食度10","暴击率5%","免暴率5%","采麻副资源暴击10%"],"d":"600秒","note":"","src":"图3"},{"n":"海鲜粥","i":"鱼类+对虾+河蟹+大米","e":["伐木主/副资源暴击10%","沼泽抵抗10%"],"d":"600秒","note":"","src":"图3"},{"n":"金枪鱼烤米卷","i":"2金枪鱼+大米+调料","e":["游泳速度提升10%","伐木速度提升10%","奔跑消耗体力降低10%"],"d":"600秒","note":"","src":"图3"},{"n":"椰子炖饭","i":"2椰子+2大米","e":["持续回复血量1.5","伐木速度提升10%","沙尘暴抵抗10%"],"d":"600秒","note":"","src":"图3"},{"n":"什锦烧麦","i":"2肉+蔬菜+大米","e":["每秒回复血量10","每秒回复饱食度13","雷雨抵抗10%","伐木副资源暴击10%","弹药携带量提升10%"],"d":"600秒","note":"","src":"图3"},{"n":"草莓饭团","i":"2大米+2草莓","e":["每秒回复血量10","每秒回复饱食度9","采麻主资源暴击15%","暴风雪抵抗10%"],"d":"1200秒","note":"","src":"图3"},{"n":"牛奶奶酪迷糊","i":"2大米+2牛奶","e":["伐木主资源暴击15%","雷雨抵抗10%"],"d":"1200秒","note":"","src":"图3"},{"n":"麻辣砂锅米粉","i":"2大米+2穿天椒","e":["暴击率10%","沼泽抵抗10%"],"d":"1200秒","note":"","src":"图3"},{"n":"煲仔饭","i":"肉+2大米+调料","e":["持续回复血量1","免暴率5%","奔跑消耗体力降低5%","爆头伤害提升5%"],"d":"600秒","note":"找夏冬凉买食谱","src":"图3"},{"n":"脆米仙贝","i":"2大米+酱料+调料","e":["持续回复血量1.5","移动速度提升5%","沼泽抵抗10%"],"d":"600秒","note":"","src":"图3"},{"n":"白米饭","i":"4大米","e":["每秒回复饱食度13.2","血量上限提升150"],"d":"750秒","note":"","src":"图3"},{"n":"南瓜手抓饭","i":"2大米+2南瓜","e":["每秒回复血量9.6","每秒回复饱食度16.8","伐木副资源暴击15%","沼泽抵抗10%"],"d":"1800秒","note":"","src":"图3"},{"n":"海鲜炒饭","i":"对虾+河蟹+2大米","e":["血量上限提升150","挖矿主/副资源暴击8%"],"d":"600秒","note":"","src":"图3"},{"n":"芝士红肠饭","i":"2肉+牛奶+大米","e":["持续回复血量1.5","挖矿主资源暴击10%","战斗熟练度提升10%"],"d":"750秒","note":"","src":"图3"},{"n":"可爱的饭团","i":"2大米+胡萝卜+调料","e":["持续回复血量1.5","移动速度提升5%","采集熟练度提升10%"],"d":"600秒","note":"","src":"图3"},{"n":"石锅拌饭","i":"大米+禽蛋+2蔬菜","e":["持续回复血量1.5","战斗熟练度提升10%","采集熟练度提升10%"],"d":"600秒","note":"","src":"图3"},{"n":"鲜虾咖喱炒饭","i":"2大米+对虾+调料","e":["免暴率5%","气力上限添加率10%","挖矿速度提升10%"],"d":"600秒","note":"","src":"图3"},{"n":"菠萝什锦饭","i":"蔬菜+2大米+菠萝","e":["血量上限150","挖矿主/副资源暴击10%","挖矿速度提升10%"],"d":"600秒","note":"找夏冬凉买食谱","src":"图3"},{"n":"吐司风味米片","i":"蔬菜+2大米+鲑鱼","e":["每秒回复饱食度11","持续回复血量1.5","采麻主资源暴击10%","采麻速度提升10%"],"d":"600秒","note":"","src":"图3"},{"n":"肥肠粉","i":"动物内脏+穿天椒+2粉丝","e":["雷雨抵抗10%","感染者伤害提升10%","补充弹药消耗降低10%"],"d":"600秒","note":"","src":"图3"},{"n":"酸辣粉","i":"穿天椒+葱姜蒜+2粉丝","e":["暴击率5%","奔跑消耗体力降低10%","沼泽抵抗10%"],"d":"600秒","note":"","src":"图3"},{"n":"红油抄手","i":"2肉+面粉+穿天椒","e":["每秒回复血量6","每秒回复饱食度13.5","暴击率5%","射速提升5%","换弹速度提升5%"],"d":"600秒","note":"","src":"图3"},{"n":"担担面","i":"2面粉+2调料","e":["雷雨抵抗10%","伐木速度提升15%"],"d":"1200秒","note":"","src":"图3"},{"n":"凉糕","i":"3面粉+调料","e":["每秒回复饱食度20","雷雨抵抗10%","伐木速度提升10%","伐木主资源暴击10%","体温降低20"],"d":"600秒","note":"","src":"图3"},{"n":"钟水饺","i":"肉+3面粉","e":["每秒回复饱食度20","弹药携带量提升10%","补充弹药消耗降低10%"],"d":"600秒","note":"","src":"图3"},{"n":"锅盔","i":"2肉+面粉+调料","e":["每秒回复饱食度16","爆头伤害提升5%","奔跑消耗体力降低10%","战斗熟练度提升10%"],"d":"600秒","note":"","src":"图3"},{"n":"凉面","i":"2面粉+酱料+葱姜蒜","e":["气力上限添加率提升10%","采麻速度提升10%","沼泽抵抗10%"],"d":"600秒","note":"","src":"图3"},{"n":"菠萝油","i":"2面粉+2蜂蜜","e":["每秒回复血量25","每秒回复饱食度13","恢复气力速度提升10%","挖矿速度提升10%"],"d":"600秒","note":"","src":"图3"},{"n":"水晶虾饺","i":"2面粉+2对虾","e":["每秒回复饱食度15","伐木主/副资源暴击10%","伐木速度提升10%"],"d":"600秒","note":"","src":"图3"},{"n":"鲜虾云吞","i":"2面粉+对虾+酱料","e":["每秒回复饱食度15","挖矿副资源暴击10%","挖矿速度提升10%","沙尘暴抵抗10%"],"d":"600秒","note":"","src":"图3"},{"n":"鲜肉肠粉","i":"2肉+大米+酱料","e":["每秒回复血量15","每秒回复饱食度12","持续回复血量1.5","暴风雪抵抗10%","射速提升5%"],"d":"600秒","note":"","src":"图4"},{"n":"鲜虾肠粉","i":"2虾+大米+酱料","e":["免暴率5%","沙尘暴抵抗10%","挖矿速度提升10%"],"d":"600秒","note":"","src":"图4"},{"n":"鸡蛋肠粉","i":"2禽蛋+酱料+大米","e":["血量上限150","雷雨抵抗10%","弹药携带量提升10%"],"d":"600秒","note":"","src":"图4"},{"n":"肝腰肠粉","i":"2大米+酱料+动物内脏","e":["持续回复血量1.5","人型怪伤害提升10%","沼泽抵抗10%"],"d":"600秒","note":"","src":"图4"},{"n":"皮蛋瘦肉粥","i":"禽蛋+肉+2大米","e":["免暴率5%","挥砍速度提升5%","补充弹药消耗降低5%"],"d":"600秒","note":"","src":"图4"},{"n":"火腿蛋丝粥","i":"肉+2大米+火腿","e":["射速提升5%","暴风雪抵抗10%","弹药携带量10%"],"d":"600秒","note":"","src":"图4"},{"n":"奶油玉米粥","i":"圣诞限定","e":["持续回复血量1.5","游泳速度提升10%","移动速度提升5%"],"d":"","note":"圣诞限定","src":"图4"},{"n":"卤肉饭","i":"肉+禽蛋+大米+酱料","e":["人型怪伤害提升10%","暴风雪抵抗10%"],"d":"600秒","note":"","src":"图4"},{"n":"猪扒包","i":"面粉+2肉+酱料","e":["每秒回复血量15","每秒回复饱食度15","爆头伤害提升7.5%","射程提升10"],"d":"600秒","note":"","src":"图4"},{"n":"虾籽捞面","i":"面粉+虾+酱料+穿天椒","e":["挖矿主资源暴击10%","挖矿速度提升10%"],"d":"600秒","note":"","src":"图4"},{"n":"大米河粉","i":"大米+2肉+穿天椒","e":["恢复气力速度提升10%","采集熟练度提升10%"],"d":"600秒","note":"","src":"图4"},{"n":"新禧春卷","i":"春节限定活动获得","e":["攻击力2","护甲值1"],"d":"600秒","note":"春节限定活动获得","src":"图4"},{"n":"牛肉芝士汉堡","i":"肉+2面粉+牛奶","e":["每秒回复饱食度15","伐木主资源暴击10%","采集熟练度提升10%"],"d":"600秒","note":"","src":"图4"},{"n":"印尼炒饭","i":"肉+蔬菜+大米+禽蛋","e":["每秒回复血量11","每秒回复饱食度11","射速提升10%","弹药携带量10%"],"d":"600秒","note":"","src":"图4"},{"n":"椰浆饭","i":"椰子+禽蛋+大米+酱料","e":["战斗熟练度提升10%","感染者伤害提升10%","射速提升5%"],"d":"600秒","note":"","src":"图4"},{"n":"炸鱼薯条","i":"鱼类+蔬菜+酱料+食用油","e":["每秒回复血量15","采麻主资源暴击10%","采集熟练度提升10%"],"d":"600秒","note":"","src":"图4"},{"n":"泰式炒河粉","i":"蔬菜+对虾+大米+葱姜蒜","e":["挖矿主资源暴击10%","采集熟练度提升10%"],"d":"600秒","note":"","src":"图4"},{"n":"不可描述的食物","i":"3冰块+1肉","e":["每秒回复饱食度10"],"d":"5秒","note":"失败料理","src":"图4"},{"n":"干净的罐头","i":"非烹饪获取","e":["每秒回复饱食度6"],"d":"5秒","note":"市政厅购买或野外箱子","src":"图4"},{"n":"清炖鱼汤","i":"2鱼+2冰块","e":["每秒回复血量25","体温提升20","去除感冒"],"d":"5秒","note":"","src":"图4"},{"n":"蔬菜鱼丸汤","i":"2鱼+2蔬菜","e":["每秒回复血量28","每秒回复饱食度12","最大气息提升50%"],"d":"600秒","note":"","src":"图4"},{"n":"炸鱼饼","i":"2鱼+2面粉","e":["每秒回复血量20","每秒回复饱食度15","挖矿速度提升10%"],"d":"600秒","note":"","src":"图4"},{"n":"麻辣水煮鱼","i":"2鱼+2穿天椒","e":["战斗熟练度提升5%"],"d":"600秒","note":"","src":"图4"},{"n":"鲜极虾王汤","i":"2鱼+对虾+河蟹","e":["每秒回复血量24","木/矿/麻速度提升10%"],"d":"900秒","note":"学习制作技能","src":"图4"},{"n":"玉子烧","i":"2鱼+2牛奶","e":["每秒回复血量24","爆头伤害提升5%","射速提升5%","射程提升10"],"d":"600秒","note":"学习制作技能","src":"图4"},{"n":"烤肉","i":"4肉","e":["每秒回复血量28.8","每秒回复饱食度14.4"],"d":"5秒","note":"","src":"图4"},{"n":"肉串","i":"2肉+2水果","e":["每秒回复血量25","每秒回复饱食度10","野生动物伤害提升5%"],"d":"600秒","note":"","src":"图4"},{"n":"蛋羹","i":"4禽蛋","e":["每秒回复血量5"],"d":"5秒","note":"","src":"图4"},{"n":"肉丸子","i":"2肉+2蔬菜","e":["每秒回复血量20","每秒回复饱食度14","感染者伤害提升5%"],"d":"600秒","note":"","src":"图4"},{"n":"蘑菇肉串","i":"蘑菇+3肉","e":["每秒回复血量20","每秒回复饱食度10","暴击率提升5%"],"d":"600秒","note":"","src":"图4"},{"n":"蜜汁烤肉","i":"2蜂蜜+2肉","e":["每秒回复血量30","每秒回复饱食度10","持续回复血量1"],"d":"600秒","note":"","src":"图4"},{"n":"蜜浇蘑菇","i":"2蘑菇+2蜂蜜","e":["每秒回复血量24","采麻主/副资源暴击10%"],"d":"600秒","note":"","src":"图4"},{"n":"牛奶炖肉","i":"2肉+2牛奶","e":["每秒回复血量16","感染者伤害提升5%"],"d":"1200秒","note":"","src":"图4"},{"n":"辣椒炒蛋","i":"2穿天椒+2禽蛋","e":["每秒回复血量5"],"d":"5秒","note":"","src":"图4"},{"n":"麻辣肉丁","i":"2肉+2穿天椒","e":["每秒回复血量15","建筑伤害提升5%"],"d":"600秒","note":"","src":"图4"},{"n":"鲜肉蛋饺","i":"2肉+2禽蛋","e":["每秒回复血量15","动物伤害提升5%"],"d":"600秒","note":"","src":"图4"},{"n":"蔬菜蛋饼","i":"2蔬菜+2禽蛋","e":["每秒回复血量15","每秒回复饱食度15","感染者伤害提升5%"],"d":"600秒","note":"","src":"图4"},{"n":"蘑菇焗蛋","i":"2蘑菇+2禽蛋","e":["每秒回复血量15","人型怪伤害提升5%"],"d":"600秒","note":"","src":"图4"},{"n":"蜂蜜蛋花汤","i":"2蜂蜜+2禽蛋","e":["每秒回复血量28","体温提升20","去除感冒"],"d":"5秒","note":"","src":"图4"},{"n":"椰子炖蛋","i":"2椰子+2禽蛋","e":["每秒回复血量15","最大气息提升50%","游泳速度提升5%"],"d":"600秒","note":"","src":"图4"},{"n":"椰香烤肉","i":"2肉+2椰子","e":["每秒回复血量25","每秒回复饱食度8","采集熟练度提升5%"],"d":"600秒","note":"","src":"图4"},{"n":"虾仁焗蛋","i":"2对虾+2禽蛋","e":["每秒回复血量5"],"d":"5秒","note":"","src":"图4"},{"n":"玉米肉碎","i":"2玉米+2肉","e":["每秒回复血量20","每秒回复饱食度10","人型怪伤害提升10%"],"d":"600秒","note":"","src":"图5"},{"n":"营养煨炖","i":"2肉+面粉+牛奶","e":["每秒回复血量15","每秒回复饱食度12","动物伤害提升10%"],"d":"1200秒","note":"","src":"图5"},{"n":"水煮肉片","i":"2肉+蔬菜+穿天椒","e":["每秒回复血量15","每秒回复饱食度12","战斗熟练度提升10%"],"d":"600秒","note":"","src":"图5"},{"n":"甜辣小丸子","i":"2肉+蜂蜜+穿天椒","e":["每秒回复血量24","战斗熟练度提升5%","感染者伤害提升10%"],"d":"600秒","note":"","src":"图5"},{"n":"什锦拼盘","i":"肉+蔬菜+水果+蘑菇","e":["每秒回复血量19","每秒回复饱食度10","伐木主/副资源暴击5%","挖矿主/副资源暴击5%"],"d":"1200秒","note":"","src":"图5"},{"n":"肉扒大餐","i":"2肉+蔬菜+蘑菇","e":["每秒回复血量20","每秒回复饱食度11.5","持续回复血量1.5"],"d":"1200秒","note":"","src":"图5"},{"n":"麻辣香锅","i":"肉+蔬菜+蘑菇+穿天椒","e":["每秒回复血量15","每秒回复饱食度10","暴击率10%","战斗熟练度提升10%"],"d":"600秒","note":"","src":"图5"},{"n":"胡萝卜肉饼","i":"2肉+2胡萝卜","e":["每秒回复血量15","每秒回复饱食度12","动物伤害提升5%"],"d":"600秒","note":"","src":"图5"},{"n":"鱼香肉丝","i":"2肉+穿天椒+胡萝卜","e":["每秒回复血量50"],"d":"5秒","note":"","src":"图5"},{"n":"香辣梭子蟹","i":"2穿天椒+2梭子蟹","e":["每秒回复血量5"],"d":"5秒","note":"","src":"图5"},{"n":"炸鱿鱼圈","i":"2鱿鱼+2面粉","e":["每秒回复饱食度15","游泳速度提升8%"],"d":"600秒","note":"","src":"图5"},{"n":"香辣鱿鱼须","i":"2鱿鱼+2穿天椒","e":["游泳速度提升8%"],"d":"600秒","note":"","src":"图5"},{"n":"麻辣海鲜香锅","i":"穿天椒+对虾+鱿鱼+梭子蟹","e":["人型怪伤害提升10%","感染者伤害提升10%","野生动物伤害提升10%","战斗熟练度提升10%"],"d":"600秒","note":"自选战斗便当","src":"图5"},{"n":"蒸河虾","i":"4对虾／1对虾+3肉","e":["每秒回复血量21.6","每秒回复饱食度12.6"],"d":"5秒","note":"","src":"图5"},{"n":"蒸螃蟹","i":"4河蟹／1河蟹+3肉","e":["每秒回复血量20","每秒回复饱食度12"],"d":"5秒","note":"","src":"图5"},{"n":"烤草鱼","i":"4草鱼／1草鱼+3肉","e":["每秒回复血量22.8","每秒回复饱食度13.2","伐木速度提升5%"],"d":"900秒","note":"","src":"图5"},{"n":"烤鲤鱼","i":"4鲤鱼／1鲤鱼+3肉","e":["采麻速度提升5%"],"d":"750秒","note":"","src":"图5"},{"n":"烤河豚","i":"4河豚／1河豚+3肉","e":["每秒回复血量70"],"d":"5秒","note":"月卡宝箱领取","src":"图5"},{"n":"烤鲶鱼","i":"4鲶鱼／1鲶鱼+3肉","e":["每秒回复血量22.8","每秒回复饱食度15","挖矿速度提升5%"],"d":"900秒","note":"","src":"图5"},{"n":"烤大黄鱼","i":"4大黄鱼／1大黄鱼+3肉","e":["每秒回复血量42","每秒回复饱食度14.2"],"d":"5秒","note":"","src":"图5"},{"n":"烤梭子蟹","i":"4梭子蟹／1梭子蟹+3肉","e":["每秒回复血量20","每秒回复饱食度12"],"d":"5秒","note":"","src":"图5"},{"n":"烤鲅鱼","i":"4鲅鱼／1鲅鱼+3肉","e":["每秒回复血量22","每秒回复饱食度14"],"d":"5秒","note":"","src":"图5"},{"n":"烤鲈鱼","i":"4条纹鲈鱼／1条纹鲈鱼+3肉","e":["每秒回复血量22","每秒回复饱食度13"],"d":"5秒","note":"","src":"图5"},{"n":"烤鳜鱼","i":"4鳜鱼／1鳜鱼+3肉","e":["每秒回复血量46","每秒回复饱食度12"],"d":"5秒","note":"","src":"图5"},{"n":"烤银鲳鱼","i":"4银鲳鱼／1银鲳鱼+3肉","e":["每秒回复血量20","每秒回复饱食度13","最大气息提升50%"],"d":"600秒","note":"","src":"图5"},{"n":"烤带鱼","i":"4带鱼／1带鱼+3肉","e":["每秒回复血量22.8","每秒回复饱食度13.8","伐木速度提升10%"],"d":"900秒","note":"","src":"图5"},{"n":"烤多宝鱼","i":"4多宝鱼／1多宝鱼+3肉","e":["每秒回复血量21","每秒回复饱食度11.6","挖矿速度提升10%"],"d":"600秒","note":"","src":"图5"},{"n":"烤海猪鱼","i":"4云斑海猪鱼／1云斑海猪鱼+3肉","e":["每秒回复血量50","每秒回复饱食度14"],"d":"5秒","note":"","src":"图5"},{"n":"烤鲳鱼","i":"4鲳鱼／1鲳鱼+3肉","e":["每秒回复血量25","每秒回复饱食度15","伐木速度提升5%","挖矿速度提升5%"],"d":"750秒","note":"","src":"图5"},{"n":"烤石斑鱼","i":"4红石斑鱼／1红石斑鱼+3肉","e":["每秒回复血量22","每秒回复饱食度13.8","采麻速度提升10%"],"d":"750秒","note":"","src":"图5"},{"n":"烤鳄鱼","i":"4鳄鱼／1鳄鱼+3肉","e":["每秒回复血量20","每秒回复饱食度15","移动速度提升5%"],"d":"600秒","note":"","src":"图5"},{"n":"烤鲑鱼","i":"4鲑鱼／1鲑鱼+3肉","e":["每秒回复饱食度12","采麻主/副资源暴击10%","采麻速度提升10%"],"d":"600秒","note":"","src":"图5"},{"n":"烤罗非鱼","i":"4红罗非鱼／1红罗非鱼+3肉","e":["挖矿主/副资源暴击10%","挖矿速度提升10%"],"d":"600秒","note":"","src":"图5"},{"n":"烤鹦嘴鱼","i":"4鹦嘴鱼／1鹦嘴鱼+3肉","e":["伐木主/副资源暴击10%","伐木速度提升10%"],"d":"600秒","note":"","src":"图5"},{"n":"烤苏眉鱼","i":"4苏眉鱼／1苏眉鱼+3肉","e":["每秒回复饱食度24.2","挖矿速度提升10%","伐木速度提升10%"],"d":"750秒","note":"","src":"图5"},{"n":"烤甲鱼","i":"4甲鱼／1甲鱼+3肉","e":["每秒回复血量33.6","每秒回复饱食度13.2","采集熟练度提升10%"],"d":"900秒","note":"","src":"图5"},{"n":"烤鸡鱼","i":"4鸡鱼／1鸡鱼+3肉","e":["每秒回复血量25","每秒回复饱食度15","伐木速度提升10%","采麻速度提升10%"],"d":"600秒","note":"","src":"图5"},{"n":"烤鱿鱼","i":"4鱿鱼／1鱿鱼+3肉","e":["每秒回复血量25","每秒回复饱食度12","挖矿速度提升10%","采麻速度提升10%"],"d":"600秒","note":"","src":"图5"},{"n":"烤太阳鱼","i":"4蓝鳃太阳鱼／1蓝鳃太阳鱼+3肉","e":["每秒回复血量30","每秒回复饱食度12","持续回复血量1.5"],"d":"600秒","note":"","src":"图5"},{"n":"剁椒鱼头","i":"穿天椒+3鳗鱼","e":["每秒回复血量18","人型怪伤害提升5%","感染者伤害提升5%","动物伤害提升5%"],"d":"600秒","note":"","src":"图5"},{"n":"清蒸鲷鱼","i":"4鲷鱼／1鲷鱼+3肉","e":["每秒回复血量24","移动速度提升2.5%","伐木主/副资源暴击10%","伐木速度提升10%"],"d":"900秒","note":"","src":"图5"},{"n":"红烧蛇鱼","i":"4蛇鱼／1蛇鱼+3肉","e":["每秒回复血量23","每秒回复饱食度11","移动速度提升2.5%","挖矿主/副资源暴击10%","挖矿速度提升10%"],"d":"600秒","note":"","src":"图5"},{"n":"碳烤红鲷鱼","i":"4红鲷鱼／1红鲷鱼+3肉","e":["每秒回复血量27.6","每秒回复饱食度13.2","移动速度提升5%","血量上限50"],"d":"900秒","note":"","src":"图6"},{"n":"烤秋刀鱼","i":"4秋刀鱼／1秋刀鱼+3肉","e":["每秒回复血量22","移动速度提升2.5%","采麻主/副资源暴击10%","采麻速度提升10%"],"d":"750秒","note":"","src":"图6"},{"n":"油炸雨鱼","i":"4雨鱼／1雨鱼+3肉","e":["每秒回复血量23","每秒回复饱食度11","战斗熟练度提升10%"],"d":"600秒","note":"","src":"图6"},{"n":"火鼠鱼料理","i":"4火鼠鱼／1火鼠鱼+3肉","e":["每秒回复血量23","每秒回复饱食度11","持续回复血量0.1","暴击率5%"],"d":"600秒","note":"","src":"图6"},{"n":"香煎冰棘鱼","i":"4冰棘鱼／1冰棘鱼+3肉","e":["每秒回复血量20","移动速度提升5%","伐木主/副资源暴击10%","伐木速度提升10%"],"d":"600秒","note":"自选采集便当","src":"图6"},{"n":"白条鱼生","i":"冰块+3白条鱼","e":["采集速度提升5%","采集熟练度提升10%"],"d":"0秒","note":"","src":"图6"},{"n":"煎龙利鱼","i":"4龙利鱼／1龙利鱼+3肉","e":["每秒回复血量20","移动速度提升5%","挖矿主/副资源暴击10%","挖矿速度提升10%"],"d":"600秒","note":"自选采集便当","src":"图6"},{"n":"金枪鱼生","i":"冰块+3金枪鱼","e":["每秒回复血量15","移动速度提升5%","采麻主/副资源暴击10%","采麻速度提升10%"],"d":"600秒","note":"自选采集便当","src":"图6"},{"n":"龙虾大餐","i":"4龙虾／1龙虾+3肉","e":["每秒回复血量27.6","每秒回复饱食度16.5","血量上限提升200"],"d":"1800秒","note":"","src":"图6"},{"n":"锦鲤刺身","i":"4锦鲤／1锦鲤+3肉","e":["持续回复血量2","每秒回复血量33.6","每秒回复饱食度14.4","暴击率提升10%","移动速度提升5%","伐木主/副资源暴击10%","挖矿主/副资源暴击10%","采麻主/副资源暴击10%","人型怪伤害提升10%","感染者伤害提升10%","野生动物伤害提升10%","建筑伤害提升10%"],"d":"1800秒","note":"","src":"图6"},{"n":"豪华鸡腿便当","i":"活动奖励","e":["回复精力值200","每秒回复饱食度6"],"d":"5秒","note":"快乐101家具店回收活动获得","src":"图6"},{"n":"南瓜小丑派","i":"2面粉+小丑鱼+南瓜","e":["每秒回复饱食度17","挖矿主/副资源暴击10%","挖矿速度提升10%","采集熟练度提升5%"],"d":"600秒","note":"","src":"图6"},{"n":"烤魔鬼鱼","i":"魔鬼鱼+3穿天椒","e":["暴击率5%","人型怪伤害提升10%","感染者伤害提升10%","动物伤害提升10%"],"d":"600秒","note":"","src":"图6"},{"n":"生鱼片寿司","i":"2鱼+蔬菜+大米","e":["每秒回复血量10","挖矿主/副资源暴击10%","暴风雪抵抗10%"],"d":"600秒","note":"","src":"图6"},{"n":"米粉蒸肉","i":"2大米+肉+酱料","e":["血量上限提升150","沼泽抵抗10%","挥砍速度提升5%"],"d":"600秒","note":"","src":"图6"},{"n":"蚂蚁上树","i":"肉+穿天椒+2粉丝","e":["射速提升5%","战斗熟练度提升10%","沙尘暴抵抗10%"],"d":"750秒","note":"","src":"图6"},{"n":"熊掌豆腐","i":"2肉+葱姜蒜+豆腐","e":["移动速度提升5%","射速提升5%","换弹速度提升5%"],"d":"600秒","note":"","src":"图6"},{"n":"毛血旺","i":"肉+穿天椒+调料+动物内脏","e":["持续回复血量1.5","人型怪伤害提升10%","战斗熟练度提升15%","体温提升20"],"d":"900秒","note":"","src":"图6"},{"n":"回锅肉","i":"2肉+酱料+葱姜蒜","e":["每秒回复血量14.4","每秒回复饱食度9.6","持续回复血量1","弹药携带量10%","弹跳提升10%"],"d":"900秒","note":"","src":"图6"},{"n":"干煸肥肠","i":"2穿天椒+2动物内脏","e":["建筑伤害提升10%","射程提升10"],"d":"1200秒","note":"","src":"图6"},{"n":"夫妻肺片","i":"穿天椒+食用油+2动物内脏","e":["感染者伤害提升10%","爆头伤害提升5%","射速提升5%"],"d":"600秒","note":"找夏冬凉买食谱／自选战斗便当","src":"图6"},{"n":"上汤龙虾","i":"2虾+面粉+蔬菜","e":["每秒回复饱食度15","挖矿主/副资源暴击10%","挖矿速度提升10%"],"d":"600秒","note":"","src":"图6"},{"n":"椒盐濑尿虾","i":"2濑尿虾+调料+葱姜蒜","e":["游泳速度提升10%","采集熟练度提升10%","奔跑消耗体力降低10%"],"d":"600秒","note":"","src":"图6"},{"n":"卤水拼盘","i":"禽蛋+2动物内脏+酱料","e":["免暴率5%","补充弹药消耗降低10%","动物伤害提升10%"],"d":"600秒","note":"","src":"图6"},{"n":"干蒸","i":"肉+2禽蛋+调料","e":["气力上限添加率10%","挥砍速度提升10%","移动速度提升5%"],"d":"600秒","note":"","src":"图6"},{"n":"脆皮烤肉","i":"2肉+2调料","e":["每秒回复血量15","移动速度提升5%","爆头伤害提升7.5%"],"d":"600秒","note":"","src":"图6"},{"n":"咸蛋蒸肉饼","i":"2肉+禽蛋+大米","e":["每秒回复血量15","每秒回复饱食度12","人型怪伤害提升10%","暴风雪抵抗10%","补充弹药消耗降低5%"],"d":"600秒","note":"","src":"图6"},{"n":"水晶蹄膀","i":"2肉+酱料+食用油","e":["每秒回复血量13","感染者伤害提升10%","免暴率5%","射速提升5%"],"d":"600秒","note":"自选战斗便当","src":"图6"},{"n":"大米肉丸子","i":"2肉+大米+调料","e":["每秒回复血量15","每秒回复饱食度12","野生动物伤害提升10%","奔跑消耗体力降低10%","沙尘暴抵抗10%"],"d":"600秒","note":"","src":"图6"},{"n":"玉米萝卜大骨汤","i":"肉+玉米+2胡萝卜","e":["持续回复血量1.5","血量上限100","免暴率5%","体温提升20"],"d":"600秒","note":"","src":"图6"},{"n":"排骨海带汤","i":"2肉+蔬菜+调料","e":["每秒回复血量20","持续回复血量1.5","免暴率10%","体温提升20"],"d":"600秒","note":"","src":"图6"},{"n":"香煎芙蓉蛋","i":"肉+蔬菜+蘑菇+禽蛋","e":["每秒回复血量15","采麻主/副资源暴击10%","战斗熟练度提升5%","弹药携带量提升10%"],"d":"600秒","note":"","src":"图6"},{"n":"菠萝咕咾肉","i":"2肉+糖+菠萝","e":["每秒回复血量15","移动速度提升5%","最大气息提升10%","爆头伤害提升5%","稳定性50"],"d":"600秒","note":"找夏冬凉买食谱","src":"图6"},{"n":"百花鱼肚","i":"2鱼+蔬菜+食用油","e":["每秒回复血量21","移动速度提升5%","采麻主资源暴击10%","采麻速度提升10%","动物伤害提升10%"],"d":"600秒","note":"","src":"图6"},{"n":"咖喱鱼蛋","i":"鱼+2蔬菜+酱料","e":["每秒回复血量10","每秒回复饱食度14.5","采麻主资源暴击10%","采麻速度提升10%"],"d":"600秒","note":"","src":"图6"},{"n":"香煎巴浪鱼","i":"巴浪鱼+3油","e":["暴击率提升5%","射速提升5%","换弹速度提升5%"],"d":"600秒","note":"","src":"图7"},{"n":"葱姜炒花蟹","i":"花蟹+油+2葱姜蒜","e":["挖矿主资源暴击率15%","沙尘暴抵抗10%"],"d":"1200秒","note":"","src":"图7"},{"n":"清蒸花蟹","i":"花蟹+3冰块","e":["伐木速度提升15%","雷雨抵抗10%"],"d":"1200秒","note":"","src":"图7"},{"n":"烤比目鱼","i":"4比目鱼","e":["伐木主资源暴击10%","伐木速度提升10%","雷雨抵抗10%"],"d":"600秒","note":"","src":"图7"},{"n":"清蒸比目鱼","i":"比目鱼+3冰","e":["暴击率提升5%","移动速度提升5%","恢复气力的速率提升5%"],"d":"600秒","note":"","src":"图7"},{"n":"香煎比目鱼","i":"比目鱼+3油","e":["补弹弹药消耗降低10%","弹药携带量10%"],"d":"1200秒","note":"","src":"图7"},{"n":"红烧比目鱼","i":"比目鱼+3酱料","e":["命中头部伤害提升6%","奔跑消耗体力降低10%","射击获得战斗熟练度提升10%"],"d":"600秒","note":"","src":"图7"},{"n":"烤基围虾","i":"4基围虾","e":["伐木主资源暴击率10%","沼泽抵抗10%","射程提升10"],"d":"600秒","note":"","src":"图7"},{"n":"红烧基围虾","i":"基围虾+3酱料","e":["气力上限添加率10%","采麻速度提升10%","沼泽抵抗10%"],"d":"600秒","note":"","src":"图7"},{"n":"清蒸基围虾","i":"基围虾+3冰","e":["游泳速度提升10%","挖矿速度提升10%","奔跑消耗体力降低10%"],"d":"60秒","note":"","src":"图7"},{"n":"清蒸皇帝蟹","i":"皇帝蟹+3冰","e":["恢复气力的速率提升10%"],"d":"1200秒","note":"","src":"图7"},{"n":"碳烤皇帝蟹","i":"4皇帝蟹","e":["伐木主/副资源暴击10%","挖矿速度提升10%","伐木速度提升10%"],"d":"600秒","note":"","src":"图7"},{"n":"烤三刀鱼","i":"4三刀鱼","e":["挖矿副资源暴击率10%","挖矿速度提升10%","沙尘暴抵抗10%"],"d":"600秒","note":"","src":"图7"},{"n":"清蒸三刀鱼","i":"三刀鱼+3冰块","e":["伐木主资源暴击率10%","伐木副资源暴击率10%","奔跑消耗体力降低10%"],"d":"600秒","note":"","src":"图7"},{"n":"红烧三刀鱼","i":"三刀鱼+3酱料","e":["采麻主资源暴击率10%","采麻速度提升10%"],"d":"1200秒","note":"","src":"图7"},{"n":"烤马头鱼","i":"4马头鱼","e":["移动速度提升5%","伐木主/副资源暴击10%"],"d":"100秒","note":"","src":"图7"},{"n":"香煎马头鱼","i":"马头鱼+3油","e":["挖矿主/副资源暴击10%","挖矿速度提升10%"],"d":"600秒","note":"","src":"图7"},{"n":"清蒸马头鱼","i":"马头鱼+3冰块","e":["游泳速度提升10%","奔跑消耗体力降低10%","劳动时采集熟练度提升10%"],"d":"600秒","note":"","src":"图7"},{"n":"蟹虾刺身","i":"深海蟹虾+3冰","e":["对野生动物伤害提升10%","免暴率5%","补弹弹药消耗降低10%"],"d":"600秒","note":"","src":"图7"},{"n":"烤蟹虾","i":"4深海蟹虾","e":["移动速度提升5%","气力上限添加率10%","挥砍速度提升10%"],"d":"600秒","note":"","src":"图7"},{"n":"避风塘炒蟹","i":"2蟹类+面+葱姜蒜","e":["移动速度提升10%","孢子分裂指数50","共生回复比例10%"],"d":"600秒","note":"","src":"图7"},{"n":"香辣蟹","i":"3蟹类+穿天椒","e":["射速提升10%","再生者伤害系数2.5%","孢子回复转化比例10%"],"d":"600秒","note":"","src":"图7"},{"n":"避风塘炒虾","i":"2虾类+面+葱姜蒜","e":["暴击率提升10%","再生活力上限100","共生回复比例10%"],"d":"600秒","note":"","src":"图7"},{"n":"香辣虾","i":"3虾类+穿天椒","e":["暴击率提升10%","人型怪伤害提升10%","感染者伤害提升10%"],"d":"600秒","note":"","src":"图7"},{"n":"虾蟹粥","i":"虾类+蟹类+冰+大米","e":["移动速度提升10%","奔跑消耗体力降低10%"],"d":"600秒","note":"","src":"图7"},{"n":"龙虾麻婆豆腐","i":"2龙虾+2豆腐（或2蓝龙虾+2豆腐）","e":["伐木副资源暴击10%","挖矿副资源暴击10%","采麻副资源暴击10%"],"d":"600秒","note":"","src":"图7"},{"n":"龙虾沙拉","i":"2龙虾+蔬菜+水果（或2蓝龙虾+蔬菜+水果）","e":["伐木速度提升10%","挖矿速度提升10%","采麻速度提升10%"],"d":"600秒","note":"","src":"图7"},{"n":"蒜蓉焗龙虾","i":"2龙虾+2葱姜蒜（或2蓝龙虾+2葱姜蒜）","e":["对人型怪物伤害提升10%","对感染者伤害提升10%","再生活力消耗降低10%","再生伤害系数2.5%"],"d":"600秒","note":"","src":"图7"},{"n":"热茶","i":"2冰块+2茶叶","e":["再生活力上限80","再生活力消耗降低8%","去除感冒"],"d":"600秒","note":"","src":"图8"},{"n":"茶叶蛋","i":"2蛋+2茶叶","e":["移动速度提升10%","孢子分裂指数50","共生回复比例10%"],"d":"600秒","note":"","src":"图8"},{"n":"茶泡饭","i":"2冰块+茶叶+大米","e":["射速提升10%","再生伤害系数2.5%","孢子回复转化比例10%"],"d":"600秒","note":"","src":"图8"},{"n":"茶叶炒鸡蛋","i":"2茶叶+蛋+油","e":["暴击率提升10%","再生活力上限100","共生回复比例10%"],"d":"600秒","note":"","src":"图8"},{"n":"奶茶","i":"2牛奶+冰块+茶叶","e":["暴击率提升10%","对人型怪物伤害提升10%","对感染者伤害提升10%"],"d":"600秒","note":"","src":"图8"},{"n":"果茶","i":"冰块+2水果+茶叶","e":["移动速度提升10%","奔跑消耗体力降低10%"],"d":"600秒","note":"","src":"图8"},{"n":"抹茶蛋糕","i":"牛奶+糖+面粉+茶叶","e":["伐木副资源暴击10%","挖矿副资源暴击10%","采麻副资源暴击10%"],"d":"600秒","note":"","src":"图8"},{"n":"抹茶布丁","i":"牛奶+冰块+面粉+茶叶","e":["伐木速度提升10%","挖矿速度提升10%","采麻速度提升10%"],"d":"600秒","note":"","src":"图8"},{"n":"茶冻撞奶","i":"牛奶+柠檬+冰块+茶叶","e":["对人型怪物伤害提升10%","对感染者伤害提升10%","再生活力消耗降低（原图被裁）"],"d":"600秒","note":"","src":"图8"},{"n":"茶香烤肉","i":"2茶叶+2肉","e":["持续回复血量1.5","孢子分裂指数50","孢子回复转化比例10%"],"d":"600秒","note":"","src":"图8"},{"n":"香煎银鳕鱼","i":"鳕鱼+3油","e":["持续回复血量1.5","免暴率5%","射速提升5%"],"d":"600秒","note":"","src":"图8"},{"n":"炸鳕鱼排","i":"鳕鱼+面粉+2油","e":["持续回复血量2","射击获得战斗熟练度提升10%"],"d":"600秒","note":"","src":"图8"},{"n":"烤金枪鱼","i":"4金枪鱼","e":["暴击率提升5%","采麻副资源暴击10%","免暴率5%"],"d":"600秒","note":"","src":"图8"},{"n":"金枪鱼饭团","i":"金枪鱼+3大米","e":["挖矿主/副资源暴击10%","暴风雪抵抗10%"],"d":"600秒","note":"","src":"图8"},{"n":"香煎金枪鱼","i":"金枪鱼+3油","e":["移动速度提升5%","挖矿速度提升10%","沙尘暴抵抗10%"],"d":"600秒","note":"","src":"图8"},{"n":"红烧鲑鱼","i":"鲑鱼+3酱料","e":["伐木副资源暴击10%","沼泽抵抗10%"],"d":"600秒","note":"","src":"图8"},{"n":"香煎鲑鱼","i":"鲑鱼+3油","e":["游泳速度提升10%","伐木速度提升10%","奔跑消耗体力降低10%"],"d":"600秒","note":"","src":"图8"},{"n":"鲑鱼刺身","i":"鲑鱼+3冰块","e":["持续回复血量1.5","伐木速度提升10%","沙尘暴抵抗10%"],"d":"600秒","note":"","src":"图8"},{"n":"红烧带鱼","i":"带鱼+3酱料","e":["伐木副资源暴击10%","雷雨抵抗10%","弹药携带量10%"],"d":"600秒","note":"","src":"图8"},{"n":"香煎带鱼","i":"带鱼+3油","e":["血量上限提升150","挥砍速度提升5%","沼泽抵抗10%"],"d":"600秒","note":"","src":"图8"},{"n":"清蒸带鱼","i":"带鱼+3冰块","e":["采麻主资源暴击10%","暴风雪抵抗10%"],"d":"1200秒","note":"","src":"图8"},{"n":"香煎秋刀鱼","i":"秋刀鱼+3油","e":["伐木主资源暴击15%","雷雨抵抗10%"],"d":"1200秒","note":"","src":"图8"},{"n":"红烧秋刀鱼","i":"秋刀鱼+3酱料","e":["暴击率提升10%","沼泽抵抗10%"],"d":"1200秒","note":"","src":"图8"},{"n":"清蒸寄居蟹","i":"寄居蟹+3冰块","e":["持续回复血量1","免暴率5%","命中头部伤害提升5%","奔跑消耗体力降低5%"],"d":"600秒","note":"","src":"图8"},{"n":"辣炒寄居蟹","i":"寄居蟹+2穿天椒+油","e":["持续回复血量1.5","移动速度提升5%","沼泽抵抗10%"],"d":"600秒","note":"","src":"图8"},{"n":"清蒸石斑鱼","i":"石斑鱼+3冰块","e":["持续回复血量1.5","挖矿主资源暴击率10%"],"d":"1200秒","note":"","src":"图8"},{"n":"石斑鱼头火锅","i":"石斑鱼+2冰块+葱姜蒜","e":["血量上限提升150"],"d":"600秒","note":"","src":"图8"},{"n":"红烧石斑鱼","i":"石斑鱼+3酱料","e":["伐木副资源暴击率15%","沼泽抵抗10%"],"d":"1200秒","note":"","src":"图8"},{"n":"石斑鱼豆腐汤","i":"石斑鱼+冰块+葱姜蒜+豆腐","e":["血量上限提升150","挖矿主/副资源暴击10%"],"d":"600秒","note":"","src":"图8"},{"n":"烤海螺","i":"4海螺","e":["血量上限提升150","挖矿主/副资源暴击10%","挖矿速度提升10%"],"d":"600秒","note":"","src":"图8"},{"n":"海螺刺身","i":"海螺+3冰块","e":["持续回复血量1.5","采麻主资源暴击10%","采麻速度提升10%"],"d":"600秒","note":"","src":"图8"},{"n":"辣炒海螺","i":"海螺+3穿天椒","e":["射速提升5%","射击获得战斗熟练度提升10%","沙尘暴抵抗10%"],"d":"600秒","note":"","src":"图8"},{"n":"烤沙丁鱼","i":"4沙丁鱼","e":["暴击率提升5%","气力上限添加率5%","稳定性50"],"d":"600秒","note":"","src":"图8"},{"n":"香煎沙丁鱼","i":"沙丁鱼+3油","e":["移动速度提升5%","射速提升5%","换弹速度提升5%"],"d":"600秒","note":"","src":"图8"},{"n":"水煮面包蟹","i":"面包蟹+3冰","e":["对感染者伤害提升10%","补弹弹药消耗降低10%","雷雨抵抗10%"],"d":"600秒","note":"","src":"图8"},{"n":"椒盐面包蟹","i":"面包蟹+2葱姜蒜+调料","e":["持续回复血量1.5","对人型怪物伤害提升10%","射击获得战斗熟练度提升15%"],"d":"600秒","note":"","src":"图8"},{"n":"烤青花鱼","i":"4青花鱼","e":["持续回复血量1","弹药携带量10%","弹跳提升10%"],"d":"600秒","note":"","src":"图8"},{"n":"青花鱼饭团","i":"青花鱼+3大米","e":["暴击率提升5%","奔跑消耗体力降低10%","沼泽抵抗10%"],"d":"600秒","note":"","src":"图8"},{"n":"鲈鱼汤","i":"鲈鱼+3冰块","e":["对建筑伤害提升10%","射程提升10%"],"d":"1200秒","note":"","src":"图8"},{"n":"红烧鲈鱼","i":"鲈鱼+3酱料","e":["对感染者伤害提升10%","命中头部伤害提升5%","射速提升5%"],"d":"600秒","note":"","src":"图8"},{"n":"烤红歌鲤","i":"4红歌鲤","e":["采麻主资源暴击率10%","采麻速度提升10%","暴风雪抵抗10%"],"d":"600秒","note":"","src":"图8"},{"n":"烤巴浪鱼","i":"4巴浪鱼","e":["移动速度提升5%","挖矿主/副资源提升10%"],"d":"600秒","note":"","src":"图8"},{"n":"梦幻荔枝冰饮","i":"荔枝+3任意食材","e":["每秒回复血量36","每秒回复饱食度19.2","暴击率5%","人型怪伤害提升10%","感染者伤害提升10%","野生动物伤害提升10%"],"d":"900秒","note":"快乐101周末巡逻·克里斯 好感度提升获得","src":"图9"},{"n":"自制石头烤肉","i":"好感度奖励","e":["每秒回复血量54","持续回复血量0.5"],"d":"600秒","note":"快乐101周末巡逻·克里斯 好感度提升获得","src":"图9"},{"n":"活力热狗","i":"好感度奖励","e":["暴击率提升10%","感染生物伤害提升10%"],"d":"600秒","note":"快乐101周末巡逻·海德尔 好感度提升获得","src":"图9"},{"n":"销魂叉烧饭","i":"好感度奖励","e":["移动速度提升10%","恢复气力加速5%"],"d":"600秒","note":"快乐101周末巡逻·巴格克里斯 好感度提升获得","src":"图9"},{"n":"派对拐杖糖","i":"好感度奖励","e":["雷雨抵抗10%","稳定性25"],"d":"","note":"快乐101周末巡逻·朵洛希·维恩 好感度提升获得","src":"图9"},{"n":"秘制油泼面","i":"好感度奖励","e":["人型怪物伤害提升","射击获取战斗熟练度提升"],"d":"","note":"快乐101周末巡逻·海伦娜·维恩 好感度提升获得","src":"图9"},{"n":"冰爽莓莓","i":"好感度奖励","e":["提升回复血量","游泳速度"],"d":"","note":"快乐101周末巡逻·克里斯 好感度提升获得","src":"图9"},{"n":"飘香荷叶烤鸡","i":"好感度奖励","e":["提升回复血量","移动速度"],"d":"","note":"快乐101周末巡逻·克里斯 好感度提升获得","src":"图9"},{"n":"铁板鱿鱼","i":"好感度奖励","e":["暴击率提升10%","射击获得战斗熟练度提升10%"],"d":"600秒","note":"快乐101周末巡逻·海德尔 好感度提升获得","src":"图9"},{"n":"午后巡逻套餐","i":"好感度奖励","e":["暴击率提升10%","人型怪伤害提升10%"],"d":"600秒","note":"快乐101周末巡逻·海德尔 好感度提升获得","src":"图9"},{"n":"焦糖布丁","i":"好感度奖励","e":["提升移动速度10%","体力上限10%"],"d":"","note":"快乐101周末巡逻·巴格克里斯 好感度提升获得","src":"图9"},{"n":"青草地甜筒","i":"好感度奖励","e":["提升移动速度10%","奔跑消耗体力降低10%"],"d":"","note":"快乐101周末巡逻·巴格克里斯 好感度提升获得","src":"图9"},{"n":"赤郡奶酪","i":"好感度奖励","e":["提升抗恶劣环境","免暴率"],"d":"","note":"快乐101周末巡逻·朵洛希·维恩 好感度提升获得","src":"图9"},{"n":"肥仔米","i":"好感度奖励","e":["血量上限150","雷雨抵抗10%"],"d":"600秒","note":"快乐101周末巡逻·朵洛希·维恩 好感度提升获得","src":"图9"},{"n":"海鲜烩饭","i":"好感度奖励","e":["提升战斗熟练度获取","战斗伤害"],"d":"","note":"快乐101周末巡逻·海伦娜·维恩 好感度提升获得","src":"图9"},{"n":"绵绵泡芙","i":"好感度奖励","e":["提升战斗熟练度获取","战斗伤害"],"d":"","note":"快乐101周末巡逻·海伦娜·维恩 好感度提升获得","src":"图9"},{"n":"珍珠丸子","i":"好感度奖励","e":["提升回复血量","移动速度"],"d":"","note":"快乐101周末巡逻·海德尔 好感度提升获得","src":"图9"},{"n":"红枣糕","i":"好感度奖励","e":["提升暴击率","战斗伤害"],"d":"","note":"快乐101周末巡逻·海德尔 好感度提升获得","src":"图9"},{"n":"虾尾拌面","i":"好感度奖励","e":["提升移动速度10%","奔跑消耗体力降低10%"],"d":"600秒","note":"快乐101周末巡逻·巴格克里斯 好感度提升获得","src":"图9"},{"n":"三鲜冰粉","i":"好感度奖励","e":["动物伤害提升5%","提升战斗熟练度10%"],"d":"","note":"快乐101周末巡逻·哈提 赠送获得","src":"图9"},{"n":"糯米糖藕","i":"好感度奖励","e":["血量上限150","雷雨抵抗10%"],"d":"600秒","note":"快乐101周末巡逻·哈提 赠送获得","src":"图9"},{"n":"暖心烤火鸡","i":"2特供配料+2特供火鸡","e":["人型怪伤害提升10%","感染者伤害提升10%"],"d":"600秒","note":"感恩节食谱","src":"图9"},{"n":"甜蜜南瓜饼","i":"2特供配料+2特供南瓜","e":["伐木副资源暴击10%"],"d":"600秒","note":"感恩节食谱","src":"图9"},{"n":"温馨土豆泥","i":"2特供配料+2特供土豆","e":["挖矿副资源暴击10%"],"d":"600秒","note":"感恩节食谱","src":"图9"},{"n":"和睦小布丁","i":"2特供配料+2特供鸡蛋","e":["持续回复血量1.5"],"d":"600秒","note":"感恩节食谱","src":"图9"},{"n":"甜水面","i":"好感度奖励","e":["提升回复血量","移动速度"],"d":"","note":"快乐101周末巡逻·海德尔 好感度提升获得","src":"图9"},{"n":"肉酱千层面","i":"好感度奖励","e":["提升暴击率","战斗伤害"],"d":"","note":"快乐101周末巡逻·海德尔 好感度提升获得","src":"图9"},{"n":"芥末虾球","i":"好感度奖励","e":["提升移动速度","奔跑消耗体力降低"],"d":"","note":"快乐101周末巡逻·巴格克里斯 好感度提升获得","src":"图9"},{"n":"香甜柿饼","i":"好感度奖励","e":["提升战斗熟练度获取","战斗伤害"],"d":"","note":"快乐101周末巡逻·海伦娜·维恩 好感度提升获得","src":"图9"},{"n":"滋补椰子鸡","i":"好感度奖励","e":["提升抗恶劣环境","血量上限"],"d":"","note":"快乐101周末巡逻·朵洛希·维恩 好感度提升获得","src":"图9"},{"n":"糖年糕","i":"双旦特典食物","e":["每秒回复血量42","每秒回复饱食度12","持续回复血量1.5"],"d":"600秒","note":"双旦特典·海德尔","src":"图9"},{"n":"莓果蛋糕","i":"双旦特典食物","e":["每秒回复血量24","每秒回复饱食度10.5","木/矿/麻速度提升10%"],"d":"600秒","note":"双旦特典·海伦娜","src":"图9"},{"n":"百物炖肉菜","i":"双旦特典食物","e":["每秒回复饱食度10.5","免暴率5%","暴击率提升5%","人型怪伤害提升10%","感染者伤害提升10%","动物伤害提升10%"],"d":"600秒","note":"双旦特典·克里斯","src":"图9"},{"n":"金银满屋","i":"双旦特典食物","e":["每秒回复血量18","每秒回复饱食度10.5","移动速度提升10%","奔跑消耗体力降低10%"],"d":"600秒","note":"双旦特典·朵洛希","src":"图9"},{"n":"雪人糯米糍","i":"双旦特典食物","e":["免暴率5%","暴击率提升5%","人型怪伤害提升10%","感染者伤害提升10%","动物伤害提升10%"],"d":"600秒","note":"双旦特典·哈提","src":"图9"},{"n":"清炖桂鱼","i":"4桂鱼／1桂鱼+3肉","e":["每秒回复血量24.1","每秒回复饱食度11.6","木/矿/麻速度提升10%","雷雨抵抗10%"],"d":"600秒","note":"","src":"图10"},{"n":"大马哈鱼刺身","i":"4大马哈鱼／1大马哈鱼+3肉","e":["每秒回复血量23","每秒回复饱食度11","木/矿/麻副资源暴击10%","雷雨抵抗10%"],"d":"600秒","note":"","src":"图10"},{"n":"烤黄鳝","i":"4黄鳝／1黄鳝+3肉","e":["每秒回复血量21","木/矿/麻副资源暴击10%","沙尘暴抵抗10%"],"d":"600秒","note":"","src":"图10"},{"n":"清蒸鳗鱼","i":"4鳗鱼／1鳗鱼+3肉","e":["木/矿/麻速度提升10%","沙尘暴抵抗10%"],"d":"600秒","note":"","src":"图10"},{"n":"烤乌青鱼","i":"4乌青鱼／1乌青鱼+3肉","e":["每秒回复血量25.3","每秒回复饱食度12.1","木/矿/麻速度提升10%","沼泽抵抗10%"],"d":"750秒","note":"","src":"图10"},{"n":"清蒸鸭子","i":"4鸭子／1鸭子+3肉","e":["木/矿/麻副资源暴击10%","沼泽抵抗10%"],"d":"600秒","note":"","src":"图10"},{"n":"红烧鳊鱼","i":"4鳊鱼／1鳊鱼+3肉","e":["每秒回复血量24.1","每秒回复饱食度11.6","木/矿/麻副资源暴击10%","暴风雪抵抗10%"],"d":"600秒","note":"","src":"图10"},{"n":"清蒸珍宝蟹","i":"4珍宝蟹／1珍宝蟹+3肉","e":["每秒回复血量25.3","每秒回复饱食度12.1","木/矿/麻速度提升10%","暴风雪抵抗10%"],"d":"750秒","note":"","src":"图10"},{"n":"鲜炸脆苹果","i":"2苹果+面粉+食用油","e":["挖矿副资源暴击10%","挖矿速度提升10%","最大气息提升5%"],"d":"600秒","note":"","src":"图10"},{"n":"苹果派","i":"苹果+面粉+糖+蛋","e":["爆头伤害提升10%","射程提升10"],"d":"600秒","note":"","src":"图10"},{"n":"香脆苹果片","i":"柠檬+3苹果","e":["每秒回复血量20","移动速度提升10%","挖矿主资源暴击10%"],"d":"600秒","note":"","src":"图10"},{"n":"玫瑰苹果酥","i":"2苹果+禽蛋+面粉","e":["暴击率提升5%","感染者伤害提升10%","弹药携带提升10%","稳定性提升30"],"d":"600秒","note":"","src":"图10"},{"n":"牛肉苹果三明治","i":"2肉+面粉+苹果","e":["每秒回复血量17","每秒回复饱食度12.5","人型怪伤害提升10%","爆头伤害提升10%"],"d":"600秒","note":"","src":"图10"},{"n":"苹果奶香松饼","i":"2禽蛋+2苹果","e":["每秒回复血量15","动物伤害提升10%","稳定性提升50"],"d":"600秒","note":"","src":"图10"},{"n":"苹果薯条","i":"2苹果+酱料+食用油","e":["采麻主资源暴击10%","采集速度提升10%"],"d":"600秒","note":"","src":"图10"},{"n":"苹果酱","i":"4苹果","e":["每秒回复血量20","木/矿/麻采集速度提升8%"],"d":"600秒","note":"","src":"图10"},{"n":"胡萝卜苹果汁","i":"2冰块+胡萝卜+苹果","e":["木/矿/麻副资源暴击8%"],"d":"600秒","note":"","src":"图10"},{"n":"水果花拼盘","i":"2苹果+2甜橙","e":["每秒回复血量20","暴击率提升5%","气力上限添加率5%","感染者伤害提升10%","挥砍速度提升10%"],"d":"600秒","note":"","src":"图10"},{"n":"芒果冰沙","i":"3冰块+芒果","e":["游泳速度提升10%","最大气息提升10%"],"d":"600秒","note":"","src":"图10"},{"n":"椰香芒果糯米饭","i":"芒果+椰子+2大米","e":["暴击率提升5%","感染者伤害提升10%","稳定性25","换弹速度提升10%"],"d":"600秒","note":"","src":"图10"},{"n":"椰芒软糖","i":"牛奶+椰子+糖+芒果","e":["每秒回复血量15","免暴率5%","暴击率5%","人型怪伤害提升10%"],"d":"600秒","note":"","src":"图10"},{"n":"芒果班戟","i":"芒果+牛奶+禽蛋+面粉","e":["伐木副资源暴击10%","伐木速度提升10%","采集熟练度提升10%"],"d":"600秒","note":"","src":"图10"},{"n":"芒果奶昔","i":"2牛奶+冰块+芒果","e":["挖矿副资源暴击10%","挖矿速度提升10%","采集熟练度提升10%"],"d":"600秒","note":"","src":"图10"},{"n":"芒果布丁","i":"牛奶+芒果+冰块+面粉","e":["采麻副资源暴击10%","采麻速度提升10%","采集熟练度提升10%"],"d":"600秒","note":"","src":"图10"},{"n":"芒果蛋挞","i":"芒果+禽蛋+糖+面粉","e":["暴击率5%","动物伤害提升10%","战斗熟练度提升5%"],"d":"600秒","note":"","src":"图10"},{"n":"芒果蜂蜜水","i":"2蜂蜜+冰块+芒果","e":["每秒回复血量29","移动速度提升10%","稳定性50","去除感冒"],"d":"600秒","note":"","src":"图10"},{"n":"芒果酱","i":"4芒果","e":["每秒回复血量20","爆头伤害提升10%","换弹速度提升10%"],"d":"600秒","note":"","src":"图10"},{"n":"芒果双皮奶","i":"2牛奶+2芒果","e":["每秒回复血量14","伐木速度提升10%","采集熟练度提升10%"],"d":"600秒","note":"","src":"图10"},{"n":"橙子曲奇饼干","i":"2甜橙+面粉+糖","e":["气力上限添加率10%","伐木主资源暴击10%","伐木速度提升10%"],"d":"600秒","note":"","src":"图10"},{"n":"甜橙汁","i":"3甜橙+冰块","e":["每秒回复血量15","气力上限添加率10%","挖矿主资源暴击10%","挖矿速度提升10%"],"d":"600秒","note":"","src":"图10"},{"n":"橙子蒸蛋","i":"3禽蛋+甜橙","e":["感染者伤害提升10%","爆头伤害提升10%","射速提升5%","稳定性25"],"d":"900秒","note":"","src":"图10"},{"n":"柠檬甜橙汁","i":"2冰块+柠檬+甜橙","e":["游泳速度提升10%","挖矿主资源暴击10%"],"d":"900秒","note":"","src":"图10"},{"n":"甜橙戚风蛋糕","i":"甜橙+禽蛋+糖+面粉","e":["气力上限添加率10%","采麻主资源暴击10%","采麻速度提升10%"],"d":"600秒","note":"","src":"图10"},{"n":"橙子酱","i":"4甜橙","e":["每秒回复血量20","人型怪伤害提升10%","射程提升10"],"d":"600秒","note":"","src":"图10"},{"n":"橙味棒棒糖","i":"2糖+2甜橙","e":["每秒回复血量14.4","移动速度提升10%","奔跑消耗体力降低10%","稳定性50"],"d":"900秒","note":"","src":"图10"},{"n":"橙子撞奶","i":"2冰块+甜橙+牛奶","e":["移动速度提升10%","采麻速度提升10%"],"d":"600秒","note":"","src":"图10"},{"n":"蟹酿橙","i":"蟹类+甜橙+酱料+葱姜蒜","e":["游泳速度提升10%","奔跑消耗体力降低10%","去除感冒"],"d":"600秒","note":"","src":"图10"},{"n":"糖渍橙皮丝","i":"甜橙+2糖+调料","e":["游泳速度提升10%","奔跑消耗体力降低10%","沼泽抵抗10%"],"d":"600秒","note":"","src":"图10"},{"n":"极净桑葚果酱","i":"桑葚+3任意食材","e":["每秒回复血量18","每秒回复饱食度17.4","暴击率5%","人型怪伤害提升10%","感染者伤害提升10%","野生动物伤害提升10%"],"d":"900秒","note":"","src":"图10"},{"n":"有机蔓越莓曲奇","i":"蔓越莓+3任意食材","e":["每秒回复血量21.6","每秒回复饱食度22.8","暴击率5%","人型怪伤害提升10%","感染者伤害提升10%","野生动物伤害提升10%"],"d":"900秒","note":"","src":"图10"},{"n":"沁心龙眼米汤","i":"龙眼+3任意食材","e":["每秒回复血量18","每秒回复饱食度17.4","暴击率5%","人型怪伤害提升10%","感染者伤害提升10%","野生动物伤害提升10%"],"d":"900秒","note":"","src":"图10"},{"n":"至臻沙棘凉糕","i":"沙棘+3任意食材","e":["每秒回复血量18","每秒回复饱食度19.2","暴击率5%","人型怪伤害提升10%","感染者伤害提升10%","野生动物伤害提升10%"],"d":"900秒","note":"","src":"图10"},{"n":"炸针鱼","i":"4针鱼／1针鱼+3肉","e":["每秒回复血量23","每秒回复饱食度11","暴击率提升10%","射速提升5%","战斗熟练度提升10%"],"d":"600秒","note":"","src":"图11"},{"n":"菊花茶","i":"3菊花瓣+冰块","e":["移动速度提升10%","建筑伤害提升10%"],"d":"","note":"","src":"图11"},{"n":"油焖春笋","i":"春笋+穿天椒+葱姜蒜+食用油","e":["持续回复血量1","弹药携带量10%"],"d":"600秒","note":"","src":"图11"},{"n":"春笋炒肉","i":"春笋+穿天椒+肉+食用油","e":["每秒回复血量14.4","免暴率10%","暴击率提升10%","感染者伤害提升10%"],"d":"900秒","note":"","src":"图11"},{"n":"清炒春笋","i":"春笋+穿天椒+糖+食用油","e":["伐木速度提升10%","采集熟练度提升10%"],"d":"600秒","note":"","src":"图11"},{"n":"腌笃鲜","i":"2春笋+肉+葱姜蒜","e":["每秒回复血量18","气力上限添加率10%","伐木副资源暴击10%","伐木速度提升10%","雷雨抵抗10%"],"d":"600秒","note":"","src":"图11"},{"n":"鲜笋抱蛋饺","i":"春笋+虾+面粉+禽蛋","e":["气力上限添加率10%","挖矿副资源暴击10%","挖矿速度提升10%","雷雨抵抗10%"],"d":"600秒","note":"","src":"图11"},{"n":"泡椒春笋","i":"春笋+穿天椒+葱姜蒜+酱料","e":["命中头部伤害提升5%","射程提升10"],"d":"600秒","note":"","src":"图11"},{"n":"红烧肉油焖笋","i":"春笋+肉+葱姜蒜+食用油","e":["每秒回复血量12","移动速度提升10%","挖矿主资源暴击10%"],"d":"600秒","note":"","src":"图11"},{"n":"八珍豆腐","i":"春笋+蘑菇+豆腐+胡萝卜","e":["气力上限添加率10%","采麻副资源暴击10%","采麻速度提升10%","雷雨抵抗10%"],"d":"600秒","note":"","src":"图11"},{"n":"香菇春笋煲鸡汤","i":"春笋+蘑菇+肉+葱姜蒜","e":["每秒回复血量18","人型怪伤害提升10%","爆头伤害提升8%"],"d":"600秒","note":"","src":"图11"},{"n":"春笋炒鸡蛋","i":"2春笋+2禽蛋","e":["每秒回复血量15","建筑伤害提升10%","挥砍速度提升10%"],"d":"600秒","note":"","src":"图11"},{"n":"爽口腌黄瓜","i":"2黄瓜+酱料+穿天椒","e":["每秒回复血量12","采麻主资源暴击10%","采麻速度提升10%"],"d":"600秒","note":"","src":"图11"},{"n":"炒三丁","i":"土豆+胡萝卜+黄瓜+肉","e":["每秒回复血量18","持续回复血量1","暴击率提升10%","感染者伤害提升10%"],"d":"600秒","note":"","src":"图11"},{"n":"响油黄瓜卷","i":"黄瓜+穿天椒+葱姜蒜+酱料","e":["人型怪伤害提升10%","射速提升10%"],"d":"600秒","note":"","src":"图11"},{"n":"开运平安竹","i":"黄瓜+玉米+胡萝卜+糖","e":["气力上限添加率10%","伐木副资源暴击10%","伐木速度提升10%","体温降低20"],"d":"600秒","note":"","src":"图11"},{"n":"三色虾仁","i":"胡萝卜+虾+黄瓜+葱姜蒜","e":["气力上限添加率10%","感染者伤害提升8%"],"d":"600秒","note":"","src":"图11"},{"n":"酸辣凉拌面","i":"面粉+黄瓜+穿天椒+酱料","e":["气力上限添加率10%","挖矿副资源暴击10%","挖矿速度提升10%","体温降低20"],"d":"600秒","note":"","src":"图11"},{"n":"木须肉","i":"黄瓜+禽蛋+蘑菇+肉","e":["每秒回复血量16","暴击率提升10%","爆头伤害提升7.5%"],"d":"600秒","note":"","src":"图11"},{"n":"黄瓜炒鸡蛋","i":"2黄瓜+2禽蛋","e":["每秒回复血量15","游泳速度提升10%","挖矿主资源暴击10%"],"d":"600秒","note":"","src":"图11"},{"n":"凉拌黄瓜","i":"黄瓜+糖+葱姜蒜+调料","e":["气力上限添加率10%","采麻副资源暴击10%","采麻速度提升10%","体温降低20"],"d":"600秒","note":"","src":"图11"},{"n":"黄瓜炒肉片","i":"黄瓜+2肉+酱料","e":["每秒回复血量18","射程提升10","野生动物伤害提升10%"],"d":"600秒","note":"","src":"图11"},{"n":"哈密瓜奶昔","i":"2哈密瓜+2牛奶","e":["每秒回复血量14","移动速度提升10%","奔跑消耗体力降低10%"],"d":"600秒","note":"","src":"图11"},{"n":"哈密瓜果酱","i":"4哈密瓜","e":["每秒回复血量20","移动速度提升10%","采麻速度提升10%"],"d":"600秒","note":"","src":"图11"},{"n":"哈密瓜汁","i":"3哈密瓜+冰块","e":["每秒回复血量15.8","移动速度提升10%","奔跑消耗体力降低10%","体温降低20"],"d":"600秒","note":"","src":"图11"},{"n":"哈密瓜冰淇淋","i":"哈密瓜+牛奶+糖+冰块","e":["移动速度提升10%","奔跑消耗体力降低10%","沼泽抵抗10%"],"d":"600秒","note":"","src":"图11"},{"n":"哈密瓜蛋糕","i":"2哈密瓜+面粉+牛奶","e":["每秒回复血量15","伐木副资源暴击10%","伐木速度提升10%","采集熟练度提升8%"],"d":"600秒","note":"","src":"图11"},{"n":"哈密瓜椰奶布丁","i":"哈密瓜+椰子+牛奶+糖","e":["每秒回复血量15","挖矿副资源暴击10%","挖矿速度提升10%","采集熟练度提升8%"],"d":"600秒","note":"","src":"图11"},{"n":"缤纷水果茶","i":"西瓜+哈密瓜+柠檬+冰块","e":["每秒回复血量16","采麻副资源暴击10%","采麻速度提升10%","采集熟练度提升8%"],"d":"600秒","note":"","src":"图11"},{"n":"椰汁西米露","i":"哈密瓜+牛奶+椰子+大米","e":["每秒回复血量12","暴击率提升10%","感染者伤害提升10%","战斗熟练度提升10%"],"d":"600秒","note":"","src":"图11"},{"n":"哈密瓜冰棒","i":"2哈密瓜+2冰块","e":["移动速度提升10%","动物伤害提升10%","体温降低20"],"d":"600秒","note":"","src":"图11"},{"n":"烤哈密瓜片","i":"3哈密瓜+调料","e":["每秒回复血量16","爆头伤害提升8%","换弹速度提升10%"],"d":"600秒","note":"","src":"图11"},{"n":"白萝卜丝汤","i":"2白萝卜+葱姜蒜+调料","e":["暴击率提升10%","感染者伤害提升10%","暴风雪抵抗10%","体温提升20"],"d":"600秒","note":"","src":"图11"},{"n":"红烧白萝卜","i":"2白萝卜+葱姜蒜+酱料","e":["每秒回复血量12","伐木主资源暴击10%","伐木速度提升5%","采集熟练度提升8%"],"d":"600秒","note":"","src":"图11"},{"n":"爽口酸辣萝卜","i":"2白萝卜+穿天椒+酱料","e":["每秒回复血量12","伐木副资源暴击10%","伐木速度提升10%","暴风雪抵抗10%","体温提升20"],"d":"600秒","note":"","src":"图11"},{"n":"大骨萝卜汤","i":"肉+白萝卜+冰块+葱姜蒜","e":["挖矿副资源暴击10%","挖矿速度提升10%","暴风雪抵抗10%","体温提升20"],"d":"600秒","note":"","src":"图11"},{"n":"萝卜菌菇汤","i":"蘑菇+白萝卜+冰块+葱姜蒜","e":["采麻副资源暴击10%","采麻速度提升10%","暴风雪抵抗10%","体温提升20"],"d":"600秒","note":"","src":"图11"},{"n":"萝卜丝饼","i":"白萝卜+葱姜蒜+面粉+禽蛋","e":["人型怪伤害提升10%","补充弹药消耗降低10%","射速提升8%"],"d":"600秒","note":"","src":"图11"},{"n":"白萝卜丝炒牛肉","i":"白萝卜+肉+葱姜蒜+酱料","e":["野生动物伤害提升10%","免暴率8%"],"d":"600秒","note":"","src":"图11"},{"n":"白萝卜丝煎蛋汤","i":"白萝卜+禽蛋+葱姜蒜+冰块","e":["伐木副资源暴击10%","去除感冒"],"d":"600秒","note":"","src":"图11"},{"n":"白萝卜肉丝饭","i":"白萝卜+肉+大米+葱姜蒜","e":["每秒回复血量0.8","恢复气力的速率提升10%"],"d":"600秒","note":"","src":"图11"},{"n":"萝卜糕","i":"白萝卜+2面粉+糖","e":["每秒回复饱食度14","对感染者伤害提升10%","战斗熟练度提升10%"],"d":"600秒","note":"","src":"图11"},{"n":"松软培根土豆包","i":"2面粉+肉+土豆","e":["每秒回复血量12","每秒回复饱食度15","持续回复血量1","暴击率8%","建筑伤害提升10%"],"d":"600秒","note":"","src":"图12"},{"n":"培根土豆饭","i":"土豆+大米+肉+葱姜蒜","e":["每秒回复血量11.6","持续回复血量1","暴击率提升5%","感染者伤害提升10%","战斗熟练度提升10%"],"d":"600秒","note":"莱文黎明区避难所教会购买食谱","src":"图12"},{"n":"鸡蛋土豆泥沙拉","i":"土豆+禽蛋+玉米+牛奶","e":["每秒回复血量12","持续回复血量1","暴击率5%","人型怪伤害提升10%","战斗熟练度提升10%"],"d":"600秒","note":"","src":"图12"},{"n":"香煎土豆片","i":"食用油+酱料+葱姜蒜+土豆","e":["暴风雪抵抗10%","爆头伤害提升5%"],"d":"600秒","note":"","src":"图12"},{"n":"奶酪拉丝土豆泥","i":"2牛奶+土豆+肉","e":["每秒回复血量15","气力上限添加率5%","恢复气力速度提升5%"],"d":"600秒","note":"","src":"图12"},{"n":"土豆丝饼","i":"土豆+面粉+酱料+食用油","e":["恢复气力值5%","挖矿副资源暴击8%"],"d":"600秒","note":"","src":"图12"},{"n":"虾仁土豆蛋饼","i":"土豆+虾类+2禽蛋","e":["气力上限添加率5%","伐木副资源暴击7.6%"],"d":"600秒","note":"","src":"图12"},{"n":"土豆肥牛盖饭","i":"土豆+肉+大米+禽蛋","e":["每秒回复血量15","气力上限添加率5%","采麻副资源暴击8%"],"d":"600秒","note":"","src":"图12"},{"n":"土豆黄焖鸡米饭","i":"土豆+肉+大米+酱料","e":["采麻副资源暴击5%","采麻速度提升5%","采集熟练度提升10%"],"d":"600秒","note":"","src":"图12"},{"n":"香甜土豆松","i":"2土豆+糖+食用油","e":["每秒回复血量12","战斗熟练度提升5%","换弹速度提升8%"],"d":"600秒","note":"","src":"图12"},{"n":"爱心便当","i":"爱心稻谷+3随机食材","e":["每秒回复血量28.8","持续回复血量1","暴击率提升10%","感染者伤害提升10%"],"d":"900秒","note":"","src":"图12"},{"n":"柠汁土豆","i":"2土豆+柠檬+葱姜蒜","e":["每秒回复血量15","补充弹药消耗降低10%","弹药携带提升5%"],"d":"600秒","note":"","src":"图12"},{"n":"柠檬酱","i":"2柠檬+禽蛋","e":["每秒回复血量15","持续回复血量1.5"],"d":"600秒","note":"","src":"图12"},{"n":"冰冻柠檬片","i":"3柠檬+冰块","e":["每秒回复血量15","移动速度提升10%"],"d":"600秒","note":"","src":"图12"},{"n":"柠檬蜜","i":"3糖+柠檬","e":["游泳速度提升10%"],"d":"600秒","note":"","src":"图12"},{"n":"蜂蜜柠檬茶","i":"蜂蜜+2冰块+柠檬","e":["每秒回复血量20","弹跳提升10%"],"d":"600秒","note":"","src":"图12"},{"n":"青柠蒸鱼","i":"2柠檬+鱼+葱姜蒜","e":["每秒回复血量20","挖矿速度提升5%","采集熟练度提升10%"],"d":"600秒","note":"","src":"图12"},{"n":"柠檬戚风蛋糕","i":"柠檬+面粉+禽蛋+糖","e":["采集速度提升5%","采集熟练度提升10%"],"d":"600秒","note":"","src":"图12"},{"n":"柠檬芝士蛋糕","i":"柠檬+面粉+牛奶+禽蛋","e":["采麻副资源暴击10%","采麻速度提升10%","采集熟练度提升10%"],"d":"600秒","note":"莱文黎明区避难所联盟找哈尔购买食谱","src":"图12"},{"n":"柠檬棒棒糖","i":"2柠檬+糖","e":["每秒回复血量15","气力上限添加率10%"],"d":"600秒","note":"","src":"图12"},{"n":"金汤柠檬鱼","i":"柠檬+鱼+调料+穿天椒","e":["每秒回复血量16","伐木副资源暴击10%","伐木速度提升10%","采集熟练度提升10%"],"d":"600秒","note":"莱文黎明区避难所科技会找拉赫尼诺夫购买食谱","src":"图12"},{"n":"柠檬玛德琳","i":"柠檬+面粉+2禽蛋","e":["恢复气力值10%"],"d":"600秒","note":"","src":"图12"},{"n":"凉拌手撕肉","i":"柠檬+肉+穿天椒+葱姜蒜","e":["挖矿副资源暴击10%","采麻速度提升10%","采集熟练度提升10%"],"d":"600秒","note":"莱文黎明区避难所科技会找智孝购买食谱","src":"图12"},{"n":"柠檬蒸对虾","i":"2柠檬+2对虾","e":["伐木主资源暴击5%","采集熟练度提升8%"],"d":"600秒","note":"","src":"图12"},{"n":"柠檬冰淇淋","i":"柠檬+糖+2冰块","e":["移动速度提升8%","弹跳提升2%"],"d":"600秒","note":"","src":"图12"},{"n":"酸爽青柠虾","i":"柠檬+穿天椒+虾类+葱姜蒜","e":["挖矿副资源暴击5%","挖矿速度提升5%"],"d":"600秒","note":"","src":"图12"},{"n":"海鲜意面","i":"2面粉+对虾+柠檬","e":["每秒回复饱食度15","伐木副资源暴击7.5%","暴风雪抵抗10%"],"d":"600秒","note":"","src":"图12"},{"n":"柠檬汁","i":"4柠檬","e":["每秒回复血量20","移动速度提升5%","沙尘暴抵抗10%"],"d":"600秒","note":"","src":"图12"},{"n":"西瓜柠檬苏打饮","i":"2冰块+西瓜+柠檬","e":["移动速度提升5%","雷雨抵抗10%"],"d":"600秒","note":"","src":"图12"},{"n":"草莓柠檬水","i":"草莓+柠檬+2冰块","e":["每秒回复血量10","移动速度提升5%","沼泽抵抗提升10%"],"d":"600秒","note":"","src":"图12"},{"n":"香煎长颌鲚","i":"4长颌鲚／1长颌鲚+3肉","e":["每秒回复血量23","每秒回复饱食度11","战斗熟练度提升5%"],"d":"600秒","note":"","src":"图12"},{"n":"炸小银鱼","i":"4小银鱼／1小银鱼+3肉","e":["每秒回复血量23","每秒回复饱食度11","持续回复血量0.5","暴击率提升5%"],"d":"600秒","note":"","src":"图12"},{"n":"红烧胭脂鱼","i":"4胭脂鱼／1胭脂鱼+3肉","e":["每秒回复血量20","移动速度提升5%","伐木副资源暴击10%","伐木速度提升5%"],"d":"900秒","note":"","src":"图12"},{"n":"烤翻车鱼","i":"4翻车鱼／1翻车鱼+3肉","e":["每秒回复血量27.6","每秒回复饱食度13.2","采麻速度提升5%","采集熟练度提升5%"],"d":"900秒","note":"","src":"图12"},{"n":"清蒸凤尾鱼","i":"4凤尾鱼／1凤尾鱼+3肉","e":["每秒回复血量59","每秒回复饱食度8"],"d":"600秒","note":"","src":"图12"},{"n":"干煎马面鱼","i":"4马面鱼／1马面鱼+3肉","e":["每秒回复血量29.4","每秒回复饱食度11.6","采麻主/副资源暴击5%","采麻速度提升5%"],"d":"600秒","note":"","src":"图12"},{"n":"西瓜冰沙","i":"高校限定料理自选箱","e":["暴击率提升10%","感染者伤害提升10%","动物伤害提升10%","射速提升5%"],"d":"600秒","note":"高校限定料理自选箱","src":"图12"},{"n":"牛奶雪糕","i":"高校限定料理自选箱","e":["每秒回复血量10","暴击率提升5%","气力上限添加率10%","感染者伤害提升10%","挥砍速度提升5%"],"d":"600秒","note":"高校限定料理自选箱","src":"图12"},{"n":"Q弹彩虹软糖","i":"高校限定料理自选箱","e":["暴击率提升10%","移动速度提升10%","感染者伤害提升10%","射速提升5%"],"d":"600秒","note":"高校限定料理自选箱","src":"图12"},{"n":"烤赤虹","i":"4赤虹／1赤虹+3肉","e":["每秒回复血量20","每秒回复饱食度8","采麻熟练度提升10%","伐木速度提升10%","木/矿/麻主资源暴击7.5%"],"d":"600秒","note":"","src":"图12"},{"n":"红烧弹涂鱼","i":"4弹涂鱼／1弹涂鱼+3肉","e":["每秒回复血量23","每秒回复饱食度11","挖矿速度提升10%","挖矿副资源暴击7.5%","采集熟练度提升10%"],"d":"600秒","note":"","src":"图12"},{"n":"飞鱼刺身","i":"4飞鱼／1飞鱼+3肉","e":["每秒回复血量23","每秒回复饱食度11","采麻速度提升10%","采麻副资源暴击7.5%","采集熟练度提升10%"],"d":"600秒","note":"","src":"图12"},{"n":"天妇罗","i":"鱼+蛋+食用油+面粉","e":["每秒回复血量15","每秒回复饱食度12","采麻副资源暴击10%","采麻速度提升10%"],"d":"600秒","note":"","src":"图13"},{"n":"关东煮","i":"肉+蔬菜+蘑菇+豆腐","e":["每秒回复血量15","感染者伤害提升5%","奔跑消耗体力降低5%"],"d":"600秒","note":"","src":"图13"},{"n":"沙嗲","i":"3肉+酱料","e":["每秒回复血量20","每秒回复饱食度12","换弹速度提升5%"],"d":"600秒","note":"","src":"图13"},{"n":"蕉叶椰鱼","i":"鱼+2蔬菜+调料","e":["每秒回复血量18","每秒回复饱食度11","木/矿/麻主资源暴击5%"],"d":"600秒","note":"","src":"图13"},{"n":"冬阴功汤","i":"蘑菇+2虾+葱姜蒜","e":["暴击率5%","沙尘暴抵抗10%"],"d":"600秒","note":"","src":"图13"},{"n":"咖喱炒蟹","i":"2蟹+酱料+食用油","e":["木/矿/麻副资源暴击5%"],"d":"600秒","note":"","src":"图13"},{"n":"蒸烤蔬菜","i":"4蔬菜","e":["每秒回复血量18.6","每秒回复饱食度18.6"],"d":"5秒","note":"","src":"图13"},{"n":"热水","i":"4冰块","e":["体温提升10","去除感冒"],"d":"5秒","note":"","src":"图13"},{"n":"烤蘑菇","i":"4蘑菇（不可全为松茸）","e":["每秒回复血量17"],"d":"5秒","note":"不可全为松茸","src":"图13"},{"n":"辣椒酱","i":"4穿天椒","e":["体温提升45"],"d":"5秒","note":"","src":"图13"},{"n":"烤玉米棒","i":"4玉米","e":["每秒回复血量15"],"d":"5秒","note":"","src":"图13"},{"n":"蔬果沙拉","i":"2蔬菜+2水果","e":["每秒回复血量20","每秒回复饱食度12","采麻主/副资源暴击5%"],"d":"600秒","note":"","src":"图13"},{"n":"蘑菇浓汤","i":"2蘑菇+2牛奶","e":["每秒回复血量15"],"d":"5秒","note":"","src":"图13"},{"n":"蘑菇炒辣椒","i":"2蘑菇+2穿天椒","e":["每秒回复血量10"],"d":"5秒","note":"","src":"图13"},{"n":"香辣水煮玉米","i":"2穿天椒+2玉米","e":["暴击率5%"],"d":"600秒","note":"","src":"图13"},{"n":"黄金玉米烙","i":"2蜂蜜+2玉米","e":["每秒回复血量60"],"d":"5秒","note":"","src":"图13"},{"n":"椰香玉米浓汤","i":"2椰子+2玉米","e":["每秒回复血量18","体温提升20"],"d":"5秒","note":"","src":"图13"},{"n":"黄油煎松茸","i":"4松茸","e":["每秒回复血量16"],"d":"5秒","note":"","src":"图13"},{"n":"炸南瓜条","i":"面粉+牛奶+2南瓜","e":["每秒回复血量10","每秒回复饱食度14"],"d":"5秒","note":"","src":"图13"},{"n":"杂菌汤","i":"蔬菜+草菇+松茸+洞穴菇","e":["体温提升26","去除感冒"],"d":"5秒","note":"","src":"图13"},{"n":"辣炒西瓜皮","i":"2穿天椒+2西瓜","e":["每秒回复血量10"],"d":"5秒","note":"","src":"图13"},{"n":"胡萝卜玉米汁","i":"2胡萝卜+2玉米","e":["每秒回复血量10"],"d":"5秒","note":"","src":"图13"},{"n":"玉米南瓜粥","i":"3玉米+南瓜","e":["每秒回复血量15","每秒回复饱食度12","持续回复血量1"],"d":"600秒","note":"","src":"图13"},{"n":"麻婆豆腐","i":"2穿天椒+葱姜蒜+豆腐","e":["暴击率5%","气力上限添加率5%","稳定性50"],"d":"600秒","note":"","src":"图13"},{"n":"三大炮","i":"蜂蜜+芝麻+2大米","e":["每秒回复血量17","暴风雪抵抗10%","采麻速度提升10%","采麻主资源暴击10%"],"d":"600秒","note":"","src":"图13"},{"n":"冒菜","i":"水果+蔬菜+蘑菇+葱姜蒜","e":["每秒回复血量15","移动速度提升5%","挖矿主/副资源暴击10%"],"d":"600秒","note":"","src":"图13"},{"n":"调味花生","i":"2花生+穿天椒+调料","e":["移动速度提升5%","暴击率5%","恢复气力速度提升5%"],"d":"600秒","note":"","src":"图13"},{"n":"姜汤","i":"蜂蜜+冰块+2葱姜蒜","e":["每秒回复血量12","游泳速度提升10%","挖矿速度提升10%","奔跑消耗体力降低10%","体温提升20","去除感冒"],"d":"60秒","note":"","src":"图13"},{"n":"鼎边锉","i":"大米+肉+蔬菜+蘑菇","e":["每秒回复血量15","伐木速度提升5%","采麻速度提升5%","挖矿速度提升5%"],"d":"600秒","note":"","src":"图13"},{"n":"蔬菜寿司","i":"3蔬菜+大米","e":["每秒回复血量15","挥砍速度提升10%","恢复气力速度提升10%"],"d":"600秒","note":"","src":"图13"},{"n":"土豆炖牛肉","i":"土豆+2肉+胡萝卜","e":["每秒回复血量20","每秒回复饱食度10","持续回复血量0.5","人型怪伤害提升5%"],"d":"600秒","note":"","src":"图13"},{"n":"土豆丝炒肉","i":"2肉+2土豆","e":["每秒回复血量22","持续回复血量0.5","感染者伤害提升5%"],"d":"600秒","note":"","src":"图13"},{"n":"薯条","i":"3土豆+食用油","e":["每秒回复血量16","移动速度提升5%","游泳速度提升5%","采集熟练度提升5%"],"d":"600秒","note":"","src":"图13"},{"n":"风琴土豆","i":"2土豆+肉+调料","e":["每秒回复血量18","暴击率5%","射程提升10"],"d":"600秒","note":"","src":"图13"},{"n":"麻辣薯角","i":"2土豆+穿天椒+食用油","e":["战斗熟练度提升10%","换弹速度提升5%"],"d":"600秒","note":"","src":"图13"},{"n":"土豆泥","i":"2土豆+2牛奶","e":["每秒回复血量14","爆头伤害提升7.5%","射程提升10"],"d":"600秒","note":"","src":"图13"},{"n":"土豆饼","i":"面粉+调料+葱姜蒜+土豆","e":["伐木主资源暴击10%","暴风雪抵抗10%"],"d":"600秒","note":"","src":"图13"},{"n":"土豆焖饭","i":"土豆+胡萝卜+大米+葱姜蒜","e":["伐木速度提升5%","沙尘暴抵抗10%"],"d":"600秒","note":"","src":"图13"},{"n":"烤土豆","i":"4土豆","e":["每秒回复血量20","射速提升10%","射程提升10"],"d":"600秒","note":"","src":"图13"},{"n":"宫保土豆丁","i":"2土豆+胡萝卜+穿天椒","e":["每秒回复血量12","气力上限添加率提升5%","挥砍速度提升10%"],"d":"600秒","note":"","src":"图13"},{"n":"香菇土豆肉沫饭","i":"土豆+蘑菇+穿天椒+大米","e":["每秒回复血量10","雷雨抵抗10%","采集速度提升10%"],"d":"600秒","note":"","src":"图13"},{"n":"葱香小土豆","i":"2土豆+油+葱姜蒜","e":["每秒回复血量13","射速提升5%","补充弹药消耗降低10%"],"d":"600秒","note":"","src":"图13"}];   // 已清空，一张图一张图重新录入
+
+/* ================= 每日副本 ================= */
+// 8 个副本按顺序每天轮换；2026-11-25 = 黑珍珠城堡（循环第 1 个）
+const DUNGEONS = ["黑珍珠城堡","海岛暗礁","山脚据点","秋日秘径","黄沙戈壁","黑泥沼","高地工厂","迷境诡林"];
+const DUNGEON_ANCHOR = new Date(2026, 10, 25); // 本地时间 2026-11-25 00:00
+const WD = ["周日","周一","周二","周三","周四","周五","周六"];
+
+const elDailyToday = $("#dailyToday"), elDailyUpc = $("#dailyUpc");
+const ymd = d => `${d.getMonth()+1}月${d.getDate()}日`;
+const md  = d => `${d.getMonth()+1}/${d.getDate()}`;
+
+function renderDaily(){
+  const now = new Date();
+  const d0 = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const diff = Math.round((d0 - DUNGEON_ANCHOR) / 86400000);
+  const idx = ((diff % 8) + 8) % 8;
+
+  elDailyToday.innerHTML = `
+    <div class="tlabel"><i></i>今日副本 · ${ymd(d0)} ${WD[d0.getDay()]}</div>
+    <div class="tname">${DUNGEONS[idx]}</div>
+    <div class="tsub">8 个副本每天固定轮换 · 今天是循环第 ${idx+1} 个</div>`;
+
+  let html = "";
+  for (let k = 1; k <= 7; k++){
+    const dd = new Date(d0.getFullYear(), d0.getMonth(), d0.getDate() + k);
+    const name = DUNGEONS[(idx + k) % 8];
+    html += `<div class="upc-item ${k === 1 ? "next" : ""}" data-d="${ymd(dd)} ${WD[dd.getDay()]}" data-n="${name}">
+      <span class="d">${k === 1 ? "明天 " : ""}${md(dd)} ${WD[dd.getDay()]}</span>
+      <span class="n">${name}</span>
+    </div>`;
+  }
+  elDailyUpc.innerHTML = html;
+  elDailyUpc.querySelectorAll(".upc-item").forEach(x=>{
+    x.onclick = ()=> toast(`${x.dataset.n} · ${x.dataset.d}`);
+  });
+}
+
+/* ================= 取数 ================= */
+// 全部 = 动物 + 鲜花；食物要单独点「食物」才进来（避免刷屏）
+function pool(){
+  if (state.type === "食物") return ANIMALS.concat(FLOWERS, FOODS);
+  return ANIMALS.concat(FLOWERS);
+}
+function hitKeyword(it){
+  if (!state.q) return true;
+  const k = state.q.trim().toLowerCase();
+  if (!k) return true;
+  const hay = it.n + " " + it.t + " " + it.spots.map(s=>s.m + " " + (s.p||"")).join(" ");
+  return hay.toLowerCase().includes(k);
+}
+function hit(it){
+  if (state.type !== "全部" && it.t !== state.type) return false;
+  if (state.map && !it.spots.some(s=>s.m === state.map)) return false;
+  return hitKeyword(it);
+}
+function copyText(it){
+  const parts = it.spots.map(s => s.m + (s.p ? "·" + s.p : ""));
+  return `${it.n} ${parts.join(" / ")}`;
+}
+
+/* ================= 渲染 ================= */
+function renderChips(){
+  const base = pool().filter(it=>{
+    if (state.map && !it.spots.some(s=>s.m === state.map)) return false;
+    return hitKeyword(it);
+  });
+  const counts = {}; base.forEach(it=> counts[it.t] = (counts[it.t]||0)+1);
+  const totalAll = base.filter(it=>it.t!=="食物").length;
+  const foodAll  = ANIMALS.concat(FLOWERS, FOODS).filter(hitKeyword).filter(it=>it.t==="食物").length;
+  const shownFood = state.type === "食物";
+
+  let html = `<button class="chip ${state.type==="全部"?"on":""}" data-type="全部">全部 <span style="opacity:.6">${totalAll}</span></button>`;
+  TYPES.forEach(x=>{
+    if (x.t === "食物"){
+      const n = foodAll;
+      html += `<button class="chip ${shownFood?"on":""}" data-type="食物" style="color:${shownFood?"#0f1115":x.color}">
+        <i></i>食物 <span style="opacity:.6">${n}</span></button>`;
+      return;
+    }
+    const n = counts[x.t]||0;
+    html += `<button class="chip ${state.type===x.t?"on":""}" data-type="${x.t}" style="color:${state.type===x.t?"#0f1115":x.color}">
+      <i></i>${x.t} <span style="opacity:.6">${n}</span></button>`;
+  });
+  elChips.innerHTML = html;
+  elChips.querySelectorAll(".chip").forEach(btn=>{
+    btn.onclick = ()=>{ state.type = btn.dataset.type; render(); };
+  });
+}
+
+function renderCountText(t){
+  elCount.textContent = (t === "今日") ? "今日刷新" : `共 ${t} 条`;
+}
+function renderCount(n){ elCount.textContent = `共 ${n} 条`; }
+
+function spotHTML(s, accent){
+  const map = `<b class="map-link" data-map="${esc(s.m)}">${esc(s.m)}</b>`;
+  if (s.p) return `<div class="spot">${map}<span class="sepc">·</span><span>${esc(s.p)}</span></div>`;
+  return `<div class="spot">${map}<em>全图刷新</em></div>`;
+}
+// 一行装下所有刷新点
+function spotsBlock(it){
+  return it.spots.map(s=>spotHTML(s)).join("");
+}
+
+function renderAnimalView(){
+  const list = pool().filter(hit);
+  renderCount(list.length);
+  if (!list.length){
+    elAnimal.innerHTML = `<div class="empty">没搜到东西<br><span style="font-size:13px">换个词试试：绒绒、红杉镇、老牧场</span></div>`;
+    return;
+  }
+  list.sort((a,b)=>{
+    return ORDER.indexOf(a.t) - ORDER.indexOf(b.t)
+        || a.n.localeCompare(b.n, "zh");
+  });
+  elAnimal.innerHTML = list.map((it,i)=>{
+    const color = COLOR[it.t];
+    return `<article class="card" style="--accent:${color}" data-i="${i}">
+      <div class="heads">
+        <span class="pill">${it.t}</span>
+        <span class="copy-hint">点击复制</span>
+      </div>
+      <h3>${esc(it.n)}</h3>
+      <div class="spots">${spotsBlock(it)}</div>
+    </article>`;
+  }).join("");
+
+  elAnimal.querySelectorAll(".card").forEach(card=>{
+    card.onclick = ()=>{
+      const it = list[+card.dataset.i];
+      copy(copyText(it));
+    };
+  });
+  elAnimal.querySelectorAll(".map-link").forEach(b=>{
+    b.onclick = e=>{ e.stopPropagation(); state.map = b.dataset.map; state.view="farm"; state.farmView="animal"; render(); };
+  });
+}
+
+function renderMapView(){
+  const list = pool().filter(hit);
+  renderCount(list.length);
+
+  const byMap = {};
+  list.forEach(it=>{
+    it.spots.forEach(s=>{
+      if (state.map && s.m !== state.map) return;
+      (byMap[s.m] = byMap[s.m] || []).push({it, p:s.p});
+    });
+  });
+  let maps = Object.keys(byMap).sort((a,b)=> byMap[b].length - byMap[a].length || a.localeCompare(b,"zh"));
+  if (!maps.length){
+    elMap.innerHTML = `<div class="empty">没搜到东西<br><span style="font-size:13px">换个词试试：绒绒、红杉镇、老牧场</span></div>`;
+    return;
+  }
+  elMap.innerHTML = maps.map(m=>{
+    const rows = byMap[m].slice().sort((a,b)=>{
+      return ORDER.indexOf(a.it.t) - ORDER.indexOf(b.it.t)
+          || a.it.n.localeCompare(b.it.n,"zh");
+    });
+    const na = rows.filter(r=>r.it.t!=="食物" && r.it.t!=="鲜花").length;
+    const nf = rows.filter(r=>r.it.t==="鲜花").length;
+    const ng = rows.filter(r=>r.it.t==="食物").length;
+    const tag = [na?na+"只":null, nf?nf+"花":null, ng?ng+"食":null].filter(Boolean).join(" · ");
+    return `<article class="mapcard">
+      <header>
+        <h3 data-map="${esc(m)}">${esc(m)}</h3>
+        <em>${tag}</em>
+      </header>
+      <ul>${rows.map(r=>`
+        <li data-m="${esc(m)}" data-t="${r.it.t}" data-n="${esc(r.it.n)}" data-p="${esc(r.p||"")}">
+          <i style="background:${COLOR[r.it.t]}"></i>
+          <b>${esc(r.it.n)}</b>
+          <span>${r.p ? esc(r.p) : "全图"}</span>
+        </li>`).join("")}
+      </ul>
+    </article>`;
+  }).join("");
+
+  elMap.querySelectorAll("li").forEach(li=>{
+    li.onclick = ()=>{
+      const m = li.dataset.m, n = li.dataset.n, p = li.dataset.p;
+      copy(`${n} ${m}${p ? "·" + p : ""}`);
+    };
+  });
+  elMap.querySelectorAll("header h3").forEach(h=>{
+    h.onclick = ()=>{ state.map = h.dataset.map; state.view = "farm"; state.farmView = "animal"; render(); };
+  });
+}
+
+/* ---------- 食物图鉴 ---------- */
+function tagsOf(it){
+  const s = it.e.join(" ");
+  const out = [];
+  const add = t => { if (!out.includes(t)) out.push(t); };
+  if (/移动速度/.test(s)) add("移速");
+  if (/感染者伤害|污染|感染生物/.test(s)) add("感染者伤害");
+  if (/人型/.test(s)) add("人型怪伤害");
+  if (/野生|动物伤害/.test(s)) add("野生动物伤害");
+  if (/建筑/.test(s)) add("建筑伤害");
+  if (/头部|命中|爆头/.test(s)) add("头部伤害");
+  if (/射速/.test(s)) add("射速");
+  if (/射程/.test(s)) add("射程");
+  if (/暴击率/.test(s)) add("暴击率");
+  if (/换弹/.test(s)) add("换弹");
+  if (/弹匣|弹药|携弹|补弹/.test(s)) add("弹药");
+  if (/稳定/.test(s)) add("稳定");
+  if (/回复血量|恢复血量|回血/.test(s)) add("回血");
+  if (/饱食/.test(s)) add("饱食度");
+  if (/血量上限|生命值上限/.test(s)) add("血量上限");
+  if (/气力上限|最大气息/.test(s)) add("气力上限");
+  if (/恢复气力/.test(s)) add("回气力");
+  if (/体温提升/.test(s)) add("保暖");
+  if (/体温降低/.test(s)) add("降温");
+  if (/感冒/.test(s)) add("免疫感冒");
+  if (/沙尘/.test(s)) add("抗沙尘");
+  if (/沼泽/.test(s)) add("抗沼泽");
+  if (/雪抵抗|寒冰/.test(s)) add("抗寒");
+  if (/雷电|雷雨/.test(s)) add("抗雷");
+  if (/风暴|暴风雪/.test(s)) add("抗风暴");
+  if (/采集速度/.test(s)) add("采集速度");
+  if (/采集熟练度/.test(s)) add("采集熟练度");
+  if (/木\/矿\/麻[^，]{0,4}速度/.test(s)) { add("伐木速度"); add("挖矿速度"); add("采麻速度"); }
+  if (/木\/矿\/麻主资源暴击/.test(s)) { add("伐木暴击"); add("挖矿暴击"); add("采麻暴击"); }
+  if (/木\/矿\/麻副资源暴击/.test(s)) { add("伐木暴击"); add("挖矿暴击"); add("采麻暴击"); }
+  if (/伐木速度/.test(s)) add("伐木速度");
+  if (/挖矿速度/.test(s)) add("挖矿速度");
+  if (/采麻速度/.test(s)) add("采麻速度");
+  if (/伐木主|伐木副/.test(s)) add("伐木暴击");
+  if (/挖矿主|挖矿副/.test(s)) add("挖矿暴击");
+  if (/采麻主|采麻副/.test(s)) add("采麻暴击");
+  if (/战斗熟练度/.test(s)) add("战斗熟练度");
+  if (/游泳/.test(s)) add("游泳");
+  if (/奔跑/.test(s)) add("奔跑消耗");
+  if (/跳跃/.test(s)) add("跳跃");
+  if (/免暴/.test(s)) add("免暴");
+  if (/挥砍/.test(s)) add("挥砍速度");
+  if (/攻击力/.test(s)) add("攻击力");
+  if (/护甲/.test(s)) add("护甲值");
+  if (/弹跳/.test(s)) add("弹跳");
+  if (/精力值/.test(s)) add("精力值");
+  if (/稳定性/.test(s)) add("稳定性");
+  if (/孢子|共生|再生/.test(s)) add("再生/孢子");
+  return out;
+}
+FOODS_ALL.forEach(it => { it.tags = tagsOf(it); });
+const TAG_INDEX = {};
+FOODS_ALL.forEach(it => it.tags.forEach(t => { TAG_INDEX[t] = (TAG_INDEX[t]||0) + 1; }));
+
+function foodKeywordOk(it){
+  if (!state.q) return true;
+  const k = state.q.trim().toLowerCase();
+  if (!k) return true;
+  return (it.n + it.i + it.e.join("") + it.tags.join("") + (it.note||"")).toLowerCase().includes(k);
+}
+function foodHit(it){
+  if (!foodKeywordOk(it)) return false;
+  for (const t of state.tags){
+    if (!it.tags.includes(t)) return false;
+  }
+  return true;
+}
+
+function renderFoodChips(){
+  if (!FOODS_ALL.length){ elChips.innerHTML = ""; return; }
+  // 标签按数量排序，多选是「同时具备」
+  const pool = FOODS_ALL.filter(foodKeywordOk);
+  const cnt = {};
+  pool.forEach(it => it.tags.forEach(t => { cnt[t] = (cnt[t]||0)+1; }));
+  const tags = Object.keys(cnt).sort((a,b)=> cnt[b]-cnt[a] || a.localeCompare(b,"zh"));
+
+  let html = "";
+  if (state.tags.length){
+    html += `<button class="chip" id="fclear" style="color:#ff8a65;border-color:rgba(255,138,101,.45)">清空 ${state.tags.length} 项 ✕</button>`;
+  }
+  html += tags.map(t=>{
+    const on = state.tags.includes(t);
+    return `<button class="chip ${on?"on":""}" data-tag="${t}">${t} <span style="opacity:.6">${cnt[t]}</span></button>`;
+  }).join("");
+  elChips.innerHTML = html;
+  elChips.querySelectorAll(".chip").forEach(b=>{
+    b.onclick = ()=>{
+      if (b.id === "fclear"){ state.tags = []; render(); return; }
+      const t = b.dataset.tag;
+      const k = state.tags.indexOf(t);
+      if (k >= 0) state.tags.splice(k,1); else state.tags.push(t);
+      render();
+    };
+  });
+}
+
+function renderFoodView(){
+  if (!FOODS_ALL.length){
+    elCount.textContent = "待录入";
+    elFood.innerHTML = `<div class="empty">食物库已清空，等你发图<br><span style="font-size:13px">一张表一张表来：你发图 → 我逐条核对 → 确认没问题再写进这里</span></div>`;
+    return;
+  }
+  const list = FOODS_ALL.filter(foodHit);
+  const cond = state.tags.length ? `（同时具备 ${state.tags.join(" + ")}）` : "";
+  elCount.textContent = `共 ${list.length} 道${cond}`;
+  if (!list.length){
+    elFood.innerHTML = `<div class="empty">没有同时满足的组合<br><span style="font-size:13px">少选一个加成再试，比如只留「移速」</span></div>`;
+    return;
+  }
+  list.sort((a,b)=> a.n.localeCompare(b.n, "zh"));
+  elFood.innerHTML = list.map((it,i)=>`
+    <article class="fcard" data-i="${i}">
+      <div class="fhead"><h3>${esc(it.n)}</h3></div>
+      <div class="fmat"><b>配方</b>${esc(it.i.split("+").join(" + "))}</div>
+      <ul class="feffs">${it.e.map(e=>`<li>${esc(e)}</li>`).join("")}</ul>
+      ${it.note ? `<div class="fnote">获取：${esc(it.note)}</div>` : ""}
+      ${it.d ? `<div class="fdur">持续时间 ${esc(it.d)}</div>` : ""}
+    </article>`).join("");
+  elFood.querySelectorAll(".fcard").forEach(card=>{
+    card.onclick = ()=>{
+      const it = list[+card.dataset.i];
+      copy(`${it.n}｜${it.i.split("+").join("+")}｜${it.e.join("，")}`);
+    };
+  });
+}
+
+function render(){
+  const v = state.view;
+  const isDungeon = v === "dungeon", isNano = v === "nano", isFarm = v === "farm", isFood = v === "food";
+
+  $$("#tabs button").forEach(b=> b.classList.toggle("on", b.dataset.view === v));
+
+  // 区块显隐
+  document.querySelector(".daily").style.display = isDungeon ? "grid" : "none";
+  document.querySelector(".alliance").style.display = isDungeon ? "block" : "none";
+  document.querySelector(".nano").style.display = isNano ? "block" : "none";
+  $("#farmTabs").style.display = isFarm ? "inline-flex" : "none";
+  // 副本 / 纳米页没有可搜内容，隐藏搜索框
+  $("#q").closest(".search").style.display = (isDungeon || isNano) ? "none" : "block";
+
+  elAnimal.style.display = (isFarm && state.farmView === "animal") ? "grid" : "none";
+  elMap.style.display    = (isFarm && state.farmView === "map") ? "grid" : "none";
+  elFood.style.display   = isFood ? "grid" : "none";
+
+  // 标签条：养殖看品种，食物看加成，副本/纳米不需要
+  const showChips = isFarm || isFood;
+  elChips.style.display = showChips ? "flex" : "none";
+  elChips2.style.display = "none";
+  elChips.classList.toggle("wrap", isFood);
+  $("#q").placeholder = isFood
+    ? "搜菜名 / 材料 / 效果，例：面粉、移速、暴击"
+    : "搜品种 / 地图 / 地点，例：绒绒、红杉镇、老牧场";
+
+  if (isDungeon){
+    renderCountText("今日");
+    renderDaily(); renderAlliance();
+    elFB.classList.remove("show");
+    return;
+  }
+  if (isNano){
+    renderCountText("16");
+    renderNano();
+    elFB.classList.remove("show");
+    return;
+  }
+  if (isFood){
+    elFB.classList.remove("show");
+    renderFoodChips();
+    renderFoodView();
+    return;
+  }
+
+  // 养殖
+  if (state.map){ elFB.classList.add("show"); elFBMap.textContent = state.map; }
+  else elFB.classList.remove("show");
+
+  renderChips();
+  if (state.farmView === "animal") renderAnimalView();
+  else renderMapView();
+}
+
+/* ================= 事件 ================= */
+function fromHash(){
+  const h = decodeURIComponent((location.hash || "").replace(/^#/, ""));
+  if (!h) return;
+  if (h === "map"){ state.view = "farm"; state.farmView = "map"; }
+  else if (h === "food") state.view = "food";
+  else if (h === "dungeon" || h === "nano" || h === "farm") state.view = h;
+  else if (TYPES.some(x => x.t === h)) state.type = h;
+}
+$("#q").addEventListener("input", e=>{ state.q = e.target.value; render(); });
+$("#tabs").addEventListener("click", e=>{
+  const b = e.target.closest("button");
+  if (!b) return;
+  state.view = b.dataset.view;
+  if (state.view === "farm") state.farmView = state.farmView || "animal";
+  render();
+});
+elFBClear.onclick = ()=>{ state.map = null; render(); };
+$("#farmTabs").addEventListener("click", e=>{
+  const b = e.target.closest("button");
+  if (!b) return;
+  state.farmView = b.dataset.fv;
+  $$("#farmTabs button").forEach(x=> x.classList.toggle("on", x.dataset.fv === state.farmView));
+  render();
+});
+document.addEventListener("keydown", e=>{
+  if (e.key === "/" && document.activeElement.tagName !== "INPUT"){
+    e.preventDefault(); $("#q").focus();
+  }
+  if (e.key === "Escape" && document.activeElement === $("#q")){
+    $("#q").value = ""; state.q = ""; $("#q").blur(); render();
+  }
+});
+
+fromHash();
+renderDaily();
+renderAlliance();
+renderNano();
+render();
+</script>
+</body>
+</html>
